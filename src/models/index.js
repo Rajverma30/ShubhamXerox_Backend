@@ -1,0 +1,21 @@
+/** Barrel export — `const { Product, Order } = require('../models')`. */
+module.exports = {
+  Admin: require('./Admin'),
+  Banner: require('./Banner'),
+  Category: require('./Category'),
+  Contact: require('./Contact'),
+  Coupon: require('./Coupon'),
+  HomeSection: require('./HomeSection'),
+  Media: require('./Media'),
+  Newsletter: require('./Newsletter'),
+  Order: require('./Order'),
+  Otp: require('./Otp'),
+  GuestCheckoutSession: require('./GuestCheckoutSession'),
+  Product: require('./Product'),
+  Review: require('./Review'),
+  ShiprocketCheckoutSession: require('./ShiprocketCheckoutSession'),
+  SearchHistory: require('./SearchHistory'),
+  Setting: require('./Setting'),
+  SubCategory: require('./SubCategory'),
+  Visitor: require('./Visitor'),
+};
