@@ -17,6 +17,7 @@ const { cleanRichText, cleanText } = require('../utils/sanitize');
 const { buildProductQuery } = require('../utils/queryFeatures');
 const imageService = require('../services/image.service');
 const pdfService = require('../services/pdf.service');
+const { correctSearchQuery } = require('../services/fuzzyProductSearch.service');
 const logger = require('../utils/logger');
 const shiprocketCatalogueSync = require('../services/shiprocketCatalogSync.service');
 
@@ -205,16 +206,29 @@ async function syncTaxonomy(body) {
 
 /** GET /api/products — the workhorse list endpoint (filters, sort, paging). */
 exports.list = asyncHandler(async (req, res) => {
-  const { filter, sort, page, limit, skip } = buildProductQuery(req.query);
-
-  const projection = {};
-  const [items, total] = await Promise.all([
-    Product.find(filter, projection).select(CARD_FIELDS).sort(sort).skip(skip).limit(limit).lean(),
+  let effectiveQuery = req.query;
+  let correctedSearch = '';
+  let { filter, sort, page, limit, skip } = buildProductQuery(effectiveQuery);
+  let [items, total] = await Promise.all([
+    Product.find(filter).select(CARD_FIELDS).sort(sort).skip(skip).limit(limit).lean(),
     Product.countDocuments(filter),
   ]);
 
+  if (total === 0 && req.query.search) {
+    correctedSearch = await correctSearchQuery(req.query.search);
+    if (correctedSearch !== String(req.query.search).trim()) {
+      effectiveQuery = { ...req.query, search: correctedSearch };
+      ({ filter, sort, page, limit, skip } = buildProductQuery(effectiveQuery));
+      [items, total] = await Promise.all([
+        Product.find(filter).select(CARD_FIELDS).sort(sort).skip(skip).limit(limit).lean(),
+        Product.countDocuments(filter),
+      ]);
+      if (!total) correctedSearch = '';
+    }
+  }
+
   if (req.query.search) SearchHistory.record(req.query.search, total).catch(() => {});
-  return paginated(res, items, { page, limit, total });
+  return paginated(res, items, { page, limit, total }, correctedSearch ? { correctedSearch } : {});
 });
 
 /** GET /api/products/facets — filter sidebar options for the current scope. */
@@ -381,36 +395,48 @@ exports.suggest = asyncHandler(async (req, res) => {
   const q = String(req.query.q || '').trim();
   if (q.length < 1) return ok(res, { products: [], categories: [], subCategories: [], authors: [] });
 
-  const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-  const [products, categories, subCategories, authorAgg] = await Promise.all([
-    Product.find({
-      isActive: true,
-      isHidden: false,
-      $or: [
-        { title: rx },
-        { author: rx },
-        { publisher: rx },
-        { categoryName: rx },
-        { subCategoryName: rx },
-        { language: rx },
-        { tags: rx },
-        { isbn: rx },
-        { description: rx },
-      ],
-    })
-      .select('title slug author price salePrice finalPrice discountPercent images categoryName subCategoryName type')
-      .sort({ soldCount: -1, views: -1 })
-      .limit(8)
-      .lean(),
-    Category.find({ name: rx, isActive: true }).select('name slug image').limit(4).lean(),
-    SubCategory.find({ name: rx, isActive: true }).select('name slug categorySlug image').limit(5).lean(),
-    Product.aggregate([
-      { $match: { author: rx, isActive: true } },
-      { $group: { _id: '$author', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 4 },
-    ]),
-  ]);
+  const findSuggestions = async (term) => {
+    const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    return Promise.all([
+      Product.find({
+        isActive: true,
+        isHidden: false,
+        $or: [
+          { title: rx },
+          { author: rx },
+          { publisher: rx },
+          { categoryName: rx },
+          { subCategoryName: rx },
+          { language: rx },
+          { tags: rx },
+          { isbn: rx },
+          { description: rx },
+        ],
+      })
+        .select('title slug author price salePrice finalPrice discountPercent images categoryName subCategoryName type')
+        .sort({ soldCount: -1, views: -1 })
+        .limit(8)
+        .lean(),
+      Category.find({ name: rx, isActive: true }).select('name slug image').limit(4).lean(),
+      SubCategory.find({ name: rx, isActive: true }).select('name slug categorySlug image').limit(5).lean(),
+      Product.aggregate([
+        { $match: { author: rx, isActive: true } },
+        { $group: { _id: '$author', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 4 },
+      ]),
+    ]);
+  };
+
+  let correctedQuery = '';
+  let [products, categories, subCategories, authorAgg] = await findSuggestions(q);
+  if (!products.length && !categories.length && !subCategories.length && !authorAgg.length) {
+    correctedQuery = await correctSearchQuery(q);
+    if (correctedQuery !== q) {
+      [products, categories, subCategories, authorAgg] = await findSuggestions(correctedQuery);
+      if (!products.length && !categories.length && !subCategories.length && !authorAgg.length) correctedQuery = '';
+    }
+  }
 
   SearchHistory.record(q, products.length).catch(() => {});
 
@@ -431,6 +457,7 @@ exports.suggest = asyncHandler(async (req, res) => {
     categories,
     subCategories,
     authors: authorAgg.map((a) => ({ name: a._id, count: a.count })),
+    ...(correctedQuery ? { correctedQuery } : {}),
   });
 });
 

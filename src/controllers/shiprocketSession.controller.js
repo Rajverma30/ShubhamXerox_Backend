@@ -20,7 +20,8 @@ const catalogueSync = require('../services/shiprocketCatalogSync.service');
 const CHECKOUT_UI = () => (process.env.SHIPROCKET_CHECKOUT_UI_BASE_URL || 'https://fastrr-boost-ui.pickrr.com').replace(/\/$/, '');
 const CATALOG_KEY = () => process.env.SHIPROCKET_CHECKOUT_API_KEY || process.env.SHIPROCKET_API_KEY || '';
 const CATALOG_SECRET = () => process.env.SHIPROCKET_CHECKOUT_API_SECRET || process.env.SHIPROCKET_API_SECRET || '';
-const WEBHOOK_SECRET = () => process.env.FASTRR_WEBHOOK_SECRET || process.env.SHIPROCKET_WEBHOOK_SECRET || CATALOG_SECRET();
+const WEBHOOK_SECRET = () => process.env.SHIPROCKET_CHECKOUT_API_SECRET || process.env.FASTRR_WEBHOOK_SECRET
+  || process.env.SHIPROCKET_WEBHOOK_SECRET || CATALOG_SECRET();
 
 const first = (...values) => values.find((value) => value !== undefined && value !== null && String(value).trim() !== '');
 const num = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;

@@ -11,9 +11,9 @@ const logger = require('../utils/logger');
 const { toProduct, toCollection } = require('./shiprocketCheckout.adapter');
 
 const enabled = () => String(process.env.SHIPROCKET_AUTO_SYNC || 'true').toLowerCase() !== 'false';
-const apiKey = () => process.env.FASTRR_API_KEY || process.env.SHIPROCKET_CHECKOUT_API_KEY || process.env.SHIPROCKET_API_KEY || '';
-const secret = () => process.env.FASTRR_WEBHOOK_SECRET || process.env.SHIPROCKET_WEBHOOK_SECRET
-  || process.env.SHIPROCKET_CHECKOUT_API_SECRET || process.env.SHIPROCKET_API_SECRET || '';
+const apiKey = () => process.env.SHIPROCKET_CHECKOUT_API_KEY || process.env.FASTRR_API_KEY || process.env.SHIPROCKET_API_KEY || '';
+const secret = () => process.env.SHIPROCKET_CHECKOUT_API_SECRET || process.env.FASTRR_WEBHOOK_SECRET
+  || process.env.SHIPROCKET_WEBHOOK_SECRET || process.env.SHIPROCKET_API_SECRET || '';
 const productUrl = () => process.env.FASTRR_PRODUCT_WEBHOOK_URL || 'https://checkout-api.shiprocket.com/wh/v1/custom/product';
 const collectionUrl = () => process.env.FASTRR_COLLECTION_WEBHOOK_URL || 'https://checkout-api.shiprocket.com/wh/v1/custom/collection';
 
