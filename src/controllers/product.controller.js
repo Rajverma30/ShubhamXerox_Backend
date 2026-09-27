@@ -14,7 +14,7 @@ const ApiError = require('../utils/ApiError');
 const { ok, created, paginated } = require('../utils/response');
 const { uniqueSlug } = require('../utils/slug');
 const { cleanRichText, cleanText } = require('../utils/sanitize');
-const { buildProductQuery } = require('../utils/queryFeatures');
+const { buildProductQuery, buildTokenSearchFilter } = require('../utils/queryFeatures');
 const imageService = require('../services/image.service');
 const pdfService = require('../services/pdf.service');
 const { correctSearchQuery } = require('../services/fuzzyProductSearch.service');
@@ -396,31 +396,24 @@ exports.suggest = asyncHandler(async (req, res) => {
   if (q.length < 1) return ok(res, { products: [], categories: [], subCategories: [], authors: [] });
 
   const findSuggestions = async (term) => {
-    const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    const searchableFields = [
+      'title', 'author', 'publisher', 'categoryName', 'subCategoryName',
+      'language', 'tags', 'isbn', 'description',
+    ];
     return Promise.all([
       Product.find({
         isActive: true,
         isHidden: false,
-        $or: [
-          { title: rx },
-          { author: rx },
-          { publisher: rx },
-          { categoryName: rx },
-          { subCategoryName: rx },
-          { language: rx },
-          { tags: rx },
-          { isbn: rx },
-          { description: rx },
-        ],
+        ...buildTokenSearchFilter(term, searchableFields),
       })
         .select('title slug author price salePrice finalPrice discountPercent images categoryName subCategoryName type')
         .sort({ soldCount: -1, views: -1 })
         .limit(8)
         .lean(),
-      Category.find({ name: rx, isActive: true }).select('name slug image').limit(4).lean(),
-      SubCategory.find({ name: rx, isActive: true }).select('name slug categorySlug image').limit(5).lean(),
+      Category.find({ isActive: true, ...buildTokenSearchFilter(term, ['name']) }).select('name slug image').limit(4).lean(),
+      SubCategory.find({ isActive: true, ...buildTokenSearchFilter(term, ['name']) }).select('name slug categorySlug image').limit(5).lean(),
       Product.aggregate([
-        { $match: { author: rx, isActive: true } },
+        { $match: { isActive: true, ...buildTokenSearchFilter(term, ['author']) } },
         { $group: { _id: '$author', count: { $sum: 1 } } },
         { $sort: { count: -1 } },
         { $limit: 4 },

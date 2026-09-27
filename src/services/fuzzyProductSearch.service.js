@@ -9,25 +9,26 @@ let cachedVocabulary;
 let cachedAt = 0;
 let vocabularyPromise;
 
-function levenshteinWithin(left, right, maxDistance) {
-  if (Math.abs(left.length - right.length) > maxDistance) return false;
-  let row = Array.from({ length: right.length + 1 }, (_, index) => index);
+function editDistanceWithin(left, right, maxDistance) {
+  if (Math.abs(left.length - right.length) > maxDistance) return Infinity;
+  const matrix = Array.from({ length: left.length + 1 }, () => Array(right.length + 1).fill(0));
+  for (let i = 0; i <= left.length; i += 1) matrix[i][0] = i;
+  for (let j = 0; j <= right.length; j += 1) matrix[0][j] = j;
+
   for (let i = 1; i <= left.length; i += 1) {
-    const next = [i];
-    let rowMinimum = i;
     for (let j = 1; j <= right.length; j += 1) {
-      const value = Math.min(
-        next[j - 1] + 1,
-        row[j] + 1,
-        row[j - 1] + (left[i - 1] === right[j - 1] ? 0 : 1),
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + (left[i - 1] === right[j - 1] ? 0 : 1),
       );
-      next.push(value);
-      rowMinimum = Math.min(rowMinimum, value);
+      if (i > 1 && j > 1 && left[i - 1] === right[j - 2] && left[i - 2] === right[j - 1]) {
+        matrix[i][j] = Math.min(matrix[i][j], matrix[i - 2][j - 2] + 1);
+      }
     }
-    if (rowMinimum > maxDistance) return false;
-    row = next;
   }
-  return row[right.length] <= maxDistance;
+  const distance = matrix[left.length][right.length];
+  return distance <= maxDistance ? distance : Infinity;
 }
 
 async function getVocabulary() {
@@ -73,15 +74,18 @@ function correctUsingVocabulary(query, vocabulary) {
     if (word.length < 4 || vocabulary.has(word)) continue;
     const maxDistance = word.length >= 7 ? 2 : 1;
     let nearest = null;
+    let nearestDistance = Infinity;
     let tied = false;
     for (const candidate of vocabulary) {
       if (Math.abs(word.length - candidate.length) > maxDistance) continue;
-      if (!levenshteinWithin(word, candidate, maxDistance)) continue;
-      if (nearest) {
+      const distance = editDistanceWithin(word, candidate, maxDistance);
+      if (distance < nearestDistance) {
+        nearest = candidate;
+        nearestDistance = distance;
+        tied = false;
+      } else if (distance === nearestDistance && Number.isFinite(distance)) {
         tied = true;
-        break;
       }
-      nearest = candidate;
     }
     if (nearest && !tied) corrections.set(word, nearest);
   }
@@ -90,4 +94,4 @@ function correctUsingVocabulary(query, vocabulary) {
   return original.replace(/[\p{L}\p{N}]+/gu, (word) => corrections.get(word.toLocaleLowerCase()) || word);
 }
 
-module.exports = { correctSearchQuery, correctUsingVocabulary, levenshteinWithin };
+module.exports = { correctSearchQuery, correctUsingVocabulary, editDistanceWithin };

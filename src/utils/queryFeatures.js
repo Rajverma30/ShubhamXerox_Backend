@@ -17,26 +17,25 @@ const SORTS = {
   relevance: { soldCount: -1, views: -1, createdAt: -1 },
 };
 
+function buildTokenSearchFilter(search, fields) {
+  const tokens = String(search || '').trim().split(/\s+/).filter(Boolean);
+  return {
+    $and: tokens.map((token) => {
+      const rx = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      return { $or: fields.map((field) => ({ [field]: rx })) };
+    }),
+  };
+}
+
 function buildProductQuery(q = {}) {
   const filter = { isActive: true, isHidden: false };
   const meta = {};
 
   if (q.search && String(q.search).trim()) {
-    const rawSearch = String(q.search).trim();
-    const escaped = rawSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const rx = new RegExp(escaped, 'i');
-    filter.$or = [
-      { title: rx },
-      { author: rx },
-      { publisher: rx },
-      { categoryName: rx },
-      { subCategoryName: rx },
-      { language: rx },
-      { tags: rx },
-      { isbn: rx },
-      { sku: rx },
-      { description: rx },
-    ];
+    Object.assign(filter, buildTokenSearchFilter(q.search, [
+      'title', 'author', 'publisher', 'categoryName', 'subCategoryName',
+      'language', 'tags', 'isbn', 'sku', 'description',
+    ]));
     meta.textSearch = true;
   }
   if (q.type) filter.type = { $in: String(q.type).split(',') };
@@ -74,4 +73,4 @@ function buildProductQuery(q = {}) {
   return { filter, sort, page, limit, skip: (page - 1) * limit, meta };
 }
 
-module.exports = { buildProductQuery, SORTS };
+module.exports = { buildProductQuery, buildTokenSearchFilter, SORTS };
