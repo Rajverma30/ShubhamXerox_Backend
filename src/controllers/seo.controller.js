@@ -160,7 +160,7 @@ exports.productOg = asyncHandler(async (req, res) => {
   const description = esc(`${priceText} · ${rawDesc || `Buy ${p.title} online at best price from Shubham Xerox Indore. Fast delivery across India.`}`);
 
   const backendUrl = (process.env.BACKEND_URL || 'https://subhamapi.hypernxt.space').replace(/\/$/, '');
-  const ogImageUrl = esc(p.images?.[0]?.url ? (p.images[0].url.startsWith('http') ? p.images[0].url : `${backendUrl}${p.images[0].url.startsWith('/') ? '' : '/'}${p.images[0].url}`) : `${base}/logo.png`);
+  const ogImageUrl = esc(p.images?.[0]?.url ? `${backendUrl}/api/og/image/${rawSlug}.jpg` : `${base}/logo.png`);
 
   const schemaJson = JSON.stringify([
     {
@@ -211,6 +211,10 @@ exports.productOg = asyncHandler(async (req, res) => {
   <meta property="product:price:amount" content="${finalPrice}">
   <meta property="product:price:currency" content="INR">
   <meta property="og:image" content="${ogImageUrl}">
+  <meta property="og:image:secure_url" content="${ogImageUrl}">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="800">
+  <meta property="og:image:height" content="1000">
   <meta property="og:url" content="${targetUrl}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${title}">
@@ -278,14 +282,41 @@ exports.productOgImage = asyncHandler(async (req, res) => {
     return res.redirect(302, `${base}/logo.png`);
   }
 
-  if (!rawImg.startsWith('http')) {
-    const backendUrl = (process.env.BACKEND_URL || 'https://subhamapi.hypernxt.space').replace(/\/$/, '');
-    rawImg = `${backendUrl}${rawImg.startsWith('/') ? '' : '/'}${rawImg}`;
+  const path = require('path');
+  const fs = require('fs');
+
+  let buffer = null;
+
+  // 1. Try local file system first if image filename is available
+  try {
+    const filename = path.basename(new URL(rawImg, 'http://localhost').pathname);
+    const localDirs = [
+      path.join(__dirname, '..', '..', 'uploads', 'products', filename),
+      path.join(__dirname, '..', '..', 'uploads', filename),
+    ];
+    for (const p of localDirs) {
+      if (fs.existsSync(p)) {
+        buffer = fs.readFileSync(p);
+        break;
+      }
+    }
+  } catch (e) {}
+
+  // 2. Fall back to fetching via HTTP/HTTPS if not found locally
+  if (!buffer) {
+    if (!rawImg.startsWith('http')) {
+      const backendUrl = (process.env.BACKEND_URL || 'https://subhamapi.hypernxt.space').replace(/\/$/, '');
+      rawImg = `${backendUrl}${rawImg.startsWith('/') ? '' : '/'}${rawImg}`;
+    }
+    try {
+      const response = await axios.get(rawImg, { responseType: 'arraybuffer', timeout: 8000 });
+      buffer = Buffer.from(response.data);
+    } catch (err) {
+      return res.redirect(302, rawImg);
+    }
   }
 
   try {
-    const response = await axios.get(rawImg, { responseType: 'arraybuffer', timeout: 8000 });
-    const buffer = Buffer.from(response.data);
     const jpegBuffer = await sharp(buffer)
       .resize({ width: 800, height: 1000, fit: 'inside' })
       .jpeg({ quality: 85 })
@@ -295,6 +326,6 @@ exports.productOgImage = asyncHandler(async (req, res) => {
     res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
     return res.send(jpegBuffer);
   } catch (err) {
-    return res.redirect(302, rawImg);
+    return res.redirect(302, `${base}/logo.png`);
   }
 });
