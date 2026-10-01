@@ -646,7 +646,11 @@ exports.webhook = asyncHandler(async (req, res) => {
     logger.warn(`Rejected Shiprocket webhook with invalid signature from ${req.ip}`);
   }
 
-  const payload = req.body || {};
+  let rawPayload = req.body || {};
+  if (typeof rawPayload === 'string') {
+    try { rawPayload = JSON.parse(rawPayload); } catch { rawPayload = {}; }
+  }
+  const payload = { ...req.query, ...rawPayload };
   logger.info(`Shiprocket webhook received: ${JSON.stringify(payload).slice(0, 500)}`);
 
   const orderId = extractOrderId(payload);
