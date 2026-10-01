@@ -17,8 +17,11 @@ const routes = require('./routes');
 const seoCtrl = require('./controllers/seo.controller');
 const { apiLimiter } = require('./middleware/rateLimit');
 const { notFound, errorHandler } = require('./middleware/error');
+const debugLogger = require('./utils/debugLogger');
 
 const app = express();
+
+app.use(debugLogger.globalDebugMiddleware);
 
 /* ── behind a proxy (nginx / render / railway) ── */
 app.set('trust proxy', 1);
@@ -211,6 +214,11 @@ app.use(require('./controllers/legacy.controller').redirectMiddleware);
 app.get('/sitemap.xml', seoCtrl.sitemap);
 app.get('/robots.txt', seoCtrl.robots);
 app.get('/googlec4a4735a45ba64b1.html', (_req, res) => res.type('text/plain').send('google-site-verification: googlec4a4735a45ba64b1.html'));
+
+/* ── Live Debugger Dashboard ── */
+app.get(['/shiprocket-checkout/debug', '/debug', '/checkout/debug'], debugLogger.renderDebugDashboardHtml);
+app.get(['/shiprocket-checkout/debug/data', '/debug/data'], (_req, res) => res.json({ logs: debugLogger.getDebugLogs() }));
+app.get(['/shiprocket-checkout/debug/clear', '/debug/clear'], (_req, res) => { debugLogger.clearDebugLogs(); res.json({ ok: true }); });
 
 /* ── Shiprocket Checkout catalogue endpoints ──
    Mounted outside /api so the paths match the URLs registered with Shiprocket
