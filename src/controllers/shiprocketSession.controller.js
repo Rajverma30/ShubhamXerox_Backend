@@ -567,6 +567,10 @@ function recordWebhookLog(entry) {
 /** Express middleware to log ALL incoming Shiprocket Checkout traffic (webhook, shipping-charge, cart validate, etc.) */
 exports.logIncomingTraffic = (req, res, next) => {
   if (req.path === '/webhook-logs') return next();
+  // Do not clutter recentWebhookLogs with routine catalogue sync GET requests
+  if (req.method === 'GET' && (req.path.includes('/products') || req.path.includes('/collections') || req.path === '/ping')) {
+    return next();
+  }
   recordWebhookLog({
     method: req.method,
     path: req.path,
