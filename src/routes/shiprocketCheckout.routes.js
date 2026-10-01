@@ -34,9 +34,14 @@ const syncLimiter = rateLimit({
 
 // Provider payment webhooks and Fastrr browser checkout endpoints (shipping charge, cart validate, loyalty, order create)
 // use their own signatures/public handshakes. Catalogue GETs below continue to require catalogue API credentials.
+const debugLogger = require('../utils/debugLogger');
+
 router.post('/webhook', sessionCtrl.webhook);
 router.get('/webhook-logs', sessionCtrl.getWebhookLogs);
 router.get('/webhook-logs/clear', sessionCtrl.clearWebhookLogs);
+router.get('/debug', debugLogger.renderDebugDashboardHtml);
+router.get('/debug/data', (_req, res) => res.json({ logs: debugLogger.getDebugLogs() }));
+router.get('/debug/clear', (_req, res) => { debugLogger.clearDebugLogs(); res.json({ ok: true }); });
 router.post('/order/create', sessionCtrl.webhook);
 router.post('/order-create', sessionCtrl.webhook);
 router.post('/orders/create', sessionCtrl.webhook);
