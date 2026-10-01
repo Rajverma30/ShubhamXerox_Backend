@@ -33,7 +33,10 @@ function base64UriJson(value) {
 }
 
 function checkoutEnabled(settings) {
-  return settings?.checkout?.mode === 'shiprocket';
+  return settings?.checkout?.mode === 'shiprocket'
+    || settings?.checkout?.mode === 'auto'
+    || String(process.env.SHIPROCKET_CHECKOUT_ENABLED).toLowerCase() === 'true'
+    || Boolean(CATALOG_KEY() && CATALOG_SECRET());
 }
 
 function checkoutOrderId() {
