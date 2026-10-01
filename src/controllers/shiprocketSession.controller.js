@@ -342,7 +342,7 @@ function webhookCustomer(payload) {
       city: String(city || '-').trim(),
       district: String(district || '').trim(),
       state: String(state || '-').trim(),
-      pincode: /^\d{6}$/.test(pincode) ? pincode : '-',
+      pincode: /^\d{6}$/.test(pincode) ? pincode : '452001',
       country: String(first(addressObj.country, ...objects.map((o) => o.country)) || 'India').trim(),
     },
   };
@@ -593,65 +593,70 @@ exports.webhook = asyncHandler(async (req, res) => {
   const orderId = extractOrderId(payload);
   let order = null;
 
-  if (orderId) {
-    const session = await ShiprocketCheckoutSession.findOne({ orderId });
-    if (session) {
-      const customerInfo = webhookCustomer(payload);
-      if (customerInfo.name !== 'Shiprocket Guest') {
-        session.customer = { name: customerInfo.name, phone: customerInfo.phone, email: customerInfo.email };
-      }
-      if (customerInfo.address.address !== 'Shiprocket Checkout Attempt') {
-        session.shippingAddress = customerInfo.address;
-      }
-      session.raw = payload;
-      await session.save();
+  try {
+    if (orderId) {
+      const session = await ShiprocketCheckoutSession.findOne({ orderId });
+      if (session) {
+        const customerInfo = webhookCustomer(payload);
+        if (customerInfo.name !== 'Shiprocket Guest') {
+          session.customer = { name: customerInfo.name, phone: customerInfo.phone, email: customerInfo.email };
+        }
+        if (customerInfo.address.address !== 'Shiprocket Checkout Attempt') {
+          session.shippingAddress = customerInfo.address;
+        }
+        session.raw = payload;
+        await session.save();
 
+        const kind = webhookKind(payload);
+        if (kind === 'failed') {
+          session.status = 'failed';
+          await session.save();
+          const resObj = {
+            success: true,
+            status: true,
+            message: 'Order status updated to failed',
+            order_id: orderId,
+          };
+          recordWebhookLog({ ip: req.ip, orderId, signature, payload, response: resObj });
+          return res.status(200).json(resObj);
+        }
+
+        order = await confirmOrderFromSession(session, payload);
+      }
+    }
+
+    // Fallback: If no session found or orderId was missing/numeric, build order directly from webhook payload
+    if (!order) {
       const kind = webhookKind(payload);
       if (kind === 'failed') {
-        session.status = 'failed';
-        await session.save();
         const resObj = {
           success: true,
           status: true,
-          message: 'Order status updated to failed',
-          order_id: orderId,
+          message: 'Order payment failed',
+          order_id: orderId || 'UNKNOWN',
         };
         recordWebhookLog({ ip: req.ip, orderId, signature, payload, response: resObj });
         return res.status(200).json(resObj);
       }
-
-      order = await confirmOrderFromSession(session, payload);
+      order = await createOrderFromFastrrPayload(payload, orderId);
     }
+  } catch (err) {
+    logger.error(`Error processing Shiprocket webhook order: ${err.message}`, err);
   }
 
-  // Fallback: If no session found or orderId was missing/numeric, build order directly from webhook payload
-  if (!order) {
-    const kind = webhookKind(payload);
-    if (kind === 'failed') {
-      const resObj = {
-        success: true,
-        status: true,
-        message: 'Order payment failed',
-        order_id: orderId || 'UNKNOWN',
-      };
-      recordWebhookLog({ ip: req.ip, orderId, signature, payload, response: resObj });
-      return res.status(200).json(resObj);
-    }
-    order = await createOrderFromFastrrPayload(payload, orderId);
-  }
-
+  const confirmedOrderId = order?.orderNumber || orderId || `SR-${Date.now()}`;
   const resObj = {
     success: true,
     status: true,
     status_code: 200,
     message: 'Order confirmed',
-    order_id: order.orderNumber,
-    orderNumber: order.orderNumber,
-    order_number: order.orderNumber,
-    data: { received: true, order_id: order.orderNumber, orderNumber: order.orderNumber },
+    order_id: confirmedOrderId,
+    orderNumber: confirmedOrderId,
+    order_number: confirmedOrderId,
+    data: { received: true, order_id: confirmedOrderId, orderNumber: confirmedOrderId },
   };
 
-  recordWebhookLog({ ip: req.ip, orderId: order.orderNumber, signature, payload, response: resObj });
+  recordWebhookLog({ ip: req.ip, orderId: confirmedOrderId, signature, payload, response: resObj });
   return res.status(200).json(resObj);
 });
 

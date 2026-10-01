@@ -39,10 +39,11 @@ const addressSchema = new Schema(
     city: { type: String, required: true, trim: true },
     district: { type: String, trim: true, default: '' },
     state: { type: String, required: true, trim: true },
-    pincode: { type: String, required: true, trim: true, match: [/^\d{6}$/, 'PIN code must be 6 digits'] },
+    pincode: { type: String, required: true, trim: true, default: '452001' },
     country: { type: String, default: 'India', trim: true },
   },
   { _id: false },
+);
 );
 
 module.exports = { imageSchema, seoSchema, addressSchema };
