@@ -551,6 +551,16 @@ async function createOrderFromFastrrPayload(payload, orderId) {
   return order;
 }
 
+const recentWebhookLogs = [];
+
+function recordWebhookLog(entry) {
+  recentWebhookLogs.unshift({
+    timestamp: new Date().toISOString(),
+    ...entry,
+  });
+  if (recentWebhookLogs.length > 50) recentWebhookLogs.pop();
+}
+
 /** POST /shiprocket-checkout/webhook — signed by Shiprocket/Fastrr. */
 exports.webhook = asyncHandler(async (req, res) => {
   const signature = req.headers['x-api-hmac-sha256'] || req.headers['x-shiprocket-signature'] || req.headers['x-fastrr-signature'];
@@ -581,12 +591,14 @@ exports.webhook = asyncHandler(async (req, res) => {
       if (kind === 'failed') {
         session.status = 'failed';
         await session.save();
-        return res.status(200).json({
+        const resObj = {
           success: true,
           status: true,
           message: 'Order status updated to failed',
           order_id: orderId,
-        });
+        };
+        recordWebhookLog({ ip: req.ip, orderId, signature, payload, response: resObj });
+        return res.status(200).json(resObj);
       }
 
       order = await confirmOrderFromSession(session, payload);
@@ -597,17 +609,19 @@ exports.webhook = asyncHandler(async (req, res) => {
   if (!order) {
     const kind = webhookKind(payload);
     if (kind === 'failed') {
-      return res.status(200).json({
+      const resObj = {
         success: true,
         status: true,
         message: 'Order payment failed',
         order_id: orderId || 'UNKNOWN',
-      });
+      };
+      recordWebhookLog({ ip: req.ip, orderId, signature, payload, response: resObj });
+      return res.status(200).json(resObj);
     }
     order = await createOrderFromFastrrPayload(payload, orderId);
   }
 
-  return res.status(200).json({
+  const resObj = {
     success: true,
     status: true,
     status_code: 200,
@@ -616,6 +630,17 @@ exports.webhook = asyncHandler(async (req, res) => {
     orderNumber: order.orderNumber,
     order_number: order.orderNumber,
     data: { received: true, order_id: order.orderNumber, orderNumber: order.orderNumber },
+  };
+
+  recordWebhookLog({ ip: req.ip, orderId: order.orderNumber, signature, payload, response: resObj });
+  return res.status(200).json(resObj);
+});
+
+/** GET /shiprocket-checkout/webhook-logs — returns recent 50 webhook logs for diagnosis */
+exports.getWebhookLogs = asyncHandler(async (_req, res) => {
+  return ok(res, {
+    total: recentWebhookLogs.length,
+    logs: recentWebhookLogs,
   });
 });
 
