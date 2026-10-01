@@ -44,6 +44,5 @@ const addressSchema = new Schema(
   },
   { _id: false },
 );
-);
 
 module.exports = { imageSchema, seoSchema, addressSchema };
