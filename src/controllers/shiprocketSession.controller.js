@@ -651,6 +651,20 @@ exports.webhook = asyncHandler(async (req, res) => {
   if (typeof rawPayload === 'string') {
     try { rawPayload = JSON.parse(rawPayload); } catch { rawPayload = {}; }
   }
+  // Fastrr urlencoded payload check: Fastrr often wraps JSON string inside req.body.payload, data, order, json, etc.
+  if (rawPayload && typeof rawPayload === 'object') {
+    for (const k of ['payload', 'data', 'order', 'json', 'body', 'content', 'payload_data']) {
+      if (rawPayload[k] && typeof rawPayload[k] === 'string') {
+        try {
+          const parsed = JSON.parse(rawPayload[k]);
+          if (parsed && typeof parsed === 'object') {
+            rawPayload = { ...rawPayload, ...parsed };
+          }
+        } catch { /* not JSON */ }
+      }
+    }
+  }
+
   const payload = { ...req.query, ...rawPayload };
   logger.info(`Shiprocket webhook received: ${JSON.stringify(payload).slice(0, 500)}`);
 
@@ -658,13 +672,22 @@ exports.webhook = asyncHandler(async (req, res) => {
   const confirmedOrderId = orderId || `SR-${Date.now()}`;
   const resObj = {
     success: true,
-    status: true,
+    status: 'success',
     status_code: 200,
+    code: 200,
     message: 'Order confirmed',
     order_id: confirmedOrderId,
     orderNumber: confirmedOrderId,
     order_number: confirmedOrderId,
-    data: { received: true, order_id: confirmedOrderId, orderNumber: confirmedOrderId },
+    payment_status: 'PAID',
+    data: {
+      status: 'success',
+      success: true,
+      payment_status: 'PAID',
+      received: true,
+      order_id: confirmedOrderId,
+      orderNumber: confirmedOrderId,
+    },
   };
 
   recordWebhookLog({ ip: req.ip, orderId: confirmedOrderId, signature, payload, response: resObj });
