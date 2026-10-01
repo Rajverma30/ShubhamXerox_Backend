@@ -183,40 +183,42 @@ exports.createSession = asyncHandler(async (req, res) => {
 
 /** POST /api/checkout/shiprocket-verify — Instant Client-Side Verification */
 exports.verifySession = asyncHandler(async (req, res) => {
-  const { orderId } = req.body || {};
+  const { orderId, forceConfirm } = req.body || {};
   if (!orderId) throw ApiError.badRequest('orderId is required');
 
-  // 1. Check if Order already exists in main Order database
+  // 1. Check if a session exists directly by orderId (SXSR-...)
+  let session = await ShiprocketCheckoutSession.findOne({ orderId });
+
+  // 2. Fallback: If orderId is a Fastrr numeric ID (e.g. SR-1790877599287), find the latest active session from last 60m
+  if (!session) {
+    session = await ShiprocketCheckoutSession.findOne({
+      status: { $in: ['active', 'confirmed', 'paid'] },
+      createdAt: { $gte: new Date(Date.now() - 60 * 60 * 1000) },
+    }).sort({ createdAt: -1 });
+  }
+
+  // 3. If session found:
+  if (session) {
+    if (session.status === 'confirmed' || session.status === 'paid' || forceConfirm) {
+      session.status = 'confirmed';
+      await session.save();
+      const order = await confirmOrderFromSession(session, session.raw || {});
+      return ok(res, {
+        confirmed: true,
+        orderNumber: order.orderNumber,
+        orderId: order._id,
+        status: order.orderStatus,
+      });
+    }
+  }
+
+  // 4. Check if Order already exists in main Order database (ignoring dummy guest orders)
   let order = await Order.findOne({
-    $or: [{ orderNumber: orderId }, { paymentTransactionId: orderId }, { notes: { $regex: orderId, $options: 'i' } }],
+    $or: [{ orderNumber: orderId }, { paymentTransactionId: orderId }],
+    'customer.name': { $ne: 'Shiprocket Guest' },
   });
 
   if (order) {
-    return ok(res, {
-      confirmed: true,
-      orderNumber: order.orderNumber,
-      orderId: order._id,
-      status: order.orderStatus,
-    });
-  }
-
-  // 2. Check if a session exists
-  const session = await ShiprocketCheckoutSession.findOne({ orderId });
-  if (session && session.status === 'confirmed') {
-    order = await confirmOrderFromSession(session, session.raw || {});
-    return ok(res, {
-      confirmed: true,
-      orderNumber: order.orderNumber,
-      orderId: order._id,
-      status: order.orderStatus,
-    });
-  }
-
-  // 3. Fallback: If session exists and status is active/pending, force confirm it if requested by client
-  if (session && req.body.forceConfirm) {
-    session.status = 'confirmed';
-    await session.save();
-    order = await confirmOrderFromSession(session, {});
     return ok(res, {
       confirmed: true,
       orderNumber: order.orderNumber,
@@ -569,6 +571,11 @@ async function createOrderFromFastrrPayload(payload, orderId) {
     }
   }
 
+  if (!items.length) {
+    logger.info(`Fastrr payload for ${cleanId} has no line items — skipping dummy order creation`);
+    return null;
+  }
+
   const reportedTotal = num(first(...objects.map((o) => o.total || o.grand_total || o.amount)), subtotal);
   const total = Math.max(subtotal, reportedTotal);
   const paymentMethod = String(first(...objects.map((o) => o.payment_method || o.paymentMethod || o.gateway)) || 'online');
@@ -578,13 +585,7 @@ async function createOrderFromFastrrPayload(payload, orderId) {
     orderNumber: cleanId,
     customer: { name: customer.name, phone: customer.phone, email: customer.email },
     shippingAddress: customer.address,
-    items: items.length > 0 ? items : [{
-      product: new mongoose.Types.ObjectId(),
-      title: 'Fastrr Checkout Order',
-      price: total || 100,
-      quantity: 1,
-      lineTotal: total || 100,
-    }],
+    items,
     subtotal: subtotal || total,
     shippingCharge: Math.max(0, total - subtotal),
     total: total || 100,
@@ -735,6 +736,18 @@ exports.getWebhookLogs = asyncHandler(async (_req, res) => {
 exports.clearWebhookLogs = asyncHandler(async (_req, res) => {
   recentWebhookLogs.length = 0;
   return ok(res, { message: 'Webhook logs cleared' });
+});
+
+/** GET /shiprocket-checkout/cleanup-dummy — removes dummy guest orders created by empty webhooks */
+exports.cleanupDummyOrders = asyncHandler(async (_req, res) => {
+  const result = await Order.deleteMany({
+    $or: [
+      { 'customer.name': 'Shiprocket Guest' },
+      { 'items.title': 'Fastrr Checkout Order' },
+      { 'shippingAddress.address': 'Shiprocket Checkout Attempt' },
+    ],
+  });
+  return ok(res, { deletedCount: result.deletedCount, message: `Successfully deleted ${result.deletedCount} dummy guest orders` });
 });
 
 exports.confirmOrderFromSession = confirmOrderFromSession;
