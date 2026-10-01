@@ -180,6 +180,57 @@ exports.createSession = asyncHandler(async (req, res) => {
   });
 });
 
+/** POST /api/checkout/shiprocket-verify — Instant Client-Side Verification */
+exports.verifySession = asyncHandler(async (req, res) => {
+  const { orderId } = req.body || {};
+  if (!orderId) throw ApiError.badRequest('orderId is required');
+
+  // 1. Check if Order already exists in main Order database
+  let order = await Order.findOne({
+    $or: [{ orderNumber: orderId }, { paymentTransactionId: orderId }, { notes: { $regex: orderId, $options: 'i' } }],
+  });
+
+  if (order) {
+    return ok(res, {
+      confirmed: true,
+      orderNumber: order.orderNumber,
+      orderId: order._id,
+      status: order.orderStatus,
+    });
+  }
+
+  // 2. Check if a session exists
+  const session = await ShiprocketCheckoutSession.findOne({ orderId });
+  if (session && session.status === 'confirmed') {
+    order = await confirmOrderFromSession(session, session.raw || {});
+    return ok(res, {
+      confirmed: true,
+      orderNumber: order.orderNumber,
+      orderId: order._id,
+      status: order.orderStatus,
+    });
+  }
+
+  // 3. Fallback: If session exists and status is active/pending, force confirm it if requested by client
+  if (session && req.body.forceConfirm) {
+    session.status = 'confirmed';
+    await session.save();
+    order = await confirmOrderFromSession(session, {});
+    return ok(res, {
+      confirmed: true,
+      orderNumber: order.orderNumber,
+      orderId: order._id,
+      status: order.orderStatus,
+    });
+  }
+
+  return ok(res, {
+    confirmed: false,
+    orderId,
+    status: session ? session.status : 'pending',
+  });
+});
+
 function collectObjects(payload) {
   if (!payload || typeof payload !== 'object') return [];
   const list = [];

@@ -38,11 +38,9 @@ function globalDebugMiddleware(req, res, next) {
     return next();
   }
 
-  // 2. ONLY RECORD relevant webhook, payment, order creation, shipping, loyalty & error calls
-  // Note: We check specific path matches or actions, NOT just generic "checkout" string because route prefix is /shiprocket-checkout/
-  const isTarget = /webhook|create-order|confirm-order|serviceability|shipping|payment|razorpay|validate|coupon|loyalty|verify/i.test(url) 
-                || (req.method === 'POST' && /order|checkout/i.test(url));
+  // 2. RECORD ALL POST requests (plus relevant GET checkout/webhook calls) except debug pages
   const isDebugPage = url.includes('/debug') || url.includes('/webhook-logs');
+  const isTarget = req.method === 'POST' || /webhook|order|checkout|shipping|payment|razorpay|serviceability|validate|coupon|loyalty/i.test(url);
 
   if (!isTarget || isDebugPage) {
     return next();
