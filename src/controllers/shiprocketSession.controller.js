@@ -702,8 +702,34 @@ exports.webhook = asyncHandler(async (req, res) => {
     }
   }
 
+  // Prefer raw bytes when JSON middleware got an empty object but Content-Length > 0
+  // (common when an upstream proxy rewrites Content-Type or double-parses poorly).
+  const contentLength = Number(req.headers['content-length'] || 0);
+  if (
+    rawPayload && typeof rawPayload === 'object' && !Array.isArray(rawPayload)
+    && Object.keys(rawPayload).length === 0
+    && req.rawBody && req.rawBody.length
+  ) {
+    try {
+      const parsed = JSON.parse(req.rawBody.toString('utf8'));
+      if (parsed && typeof parsed === 'object') rawPayload = parsed;
+    } catch { /* keep empty */ }
+  }
+
   const payload = { ...req.query, ...rawPayload };
-  logger.info(`Shiprocket webhook received: ${JSON.stringify(payload).slice(0, 500)}`);
+  const payloadKeys = Object.keys(payload).filter((k) => payload[k] !== undefined);
+  logger.info(
+    `Shiprocket webhook received (content-length=${contentLength}, rawBody=${req.rawBody?.length || 0}b, keys=${payloadKeys.length}): ` +
+    `${JSON.stringify(payload).slice(0, 500)}`,
+  );
+
+  if (!payloadKeys.length) {
+    logger.error(
+      'Shiprocket webhook body is EMPTY. Fastrr payment data never reached this server. ' +
+      'Point the webhook at the API host directly (e.g. https://subhamapi.hypernxt.space/shiprocket-checkout/webhook) ' +
+      'or fix the storefront proxy so it streams the raw POST body.',
+    );
+  }
 
   const orderId = extractOrderId(payload);
   let order = null;
@@ -772,7 +798,16 @@ exports.webhook = asyncHandler(async (req, res) => {
     },
   };
 
-  recordWebhookLog({ ip: req.ip, orderId: confirmedOrderId, signature, payload, response: resObj });
+  recordWebhookLog({
+    ip: req.ip,
+    orderId: confirmedOrderId,
+    signature,
+    contentLength,
+    rawBodyBytes: req.rawBody?.length || 0,
+    payloadKeys: payloadKeys.length,
+    payload,
+    response: resObj,
+  });
   return res.status(200).json(resObj);
 });
 
