@@ -36,6 +36,7 @@ const syncLimiter = rateLimit({
 // use their own signatures/public handshakes. Catalogue GETs below continue to require catalogue API credentials.
 router.post('/webhook', sessionCtrl.webhook);
 router.get('/webhook-logs', sessionCtrl.getWebhookLogs);
+router.get('/webhook-logs/clear', sessionCtrl.clearWebhookLogs);
 router.post('/order/create', sessionCtrl.webhook);
 router.post('/order-create', sessionCtrl.webhook);
 router.post('/orders/create', sessionCtrl.webhook);

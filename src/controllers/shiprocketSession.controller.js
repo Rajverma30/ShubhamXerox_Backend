@@ -675,6 +675,12 @@ exports.getWebhookLogs = asyncHandler(async (_req, res) => {
   });
 });
 
+/** GET /shiprocket-checkout/webhook-logs/clear — resets live logs memory */
+exports.clearWebhookLogs = asyncHandler(async (_req, res) => {
+  recentWebhookLogs.length = 0;
+  return ok(res, { message: 'Webhook logs cleared' });
+});
+
 exports.confirmOrderFromSession = confirmOrderFromSession;
 exports.webhookCustomer = webhookCustomer;
 
