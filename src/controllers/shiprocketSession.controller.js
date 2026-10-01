@@ -655,60 +655,7 @@ exports.webhook = asyncHandler(async (req, res) => {
   logger.info(`Shiprocket webhook received: ${JSON.stringify(payload).slice(0, 500)}`);
 
   const orderId = extractOrderId(payload);
-  let order = null;
-
-  try {
-    if (orderId) {
-      const session = await ShiprocketCheckoutSession.findOne({ orderId });
-      if (session) {
-        const customerInfo = webhookCustomer(payload);
-        if (customerInfo.name !== 'Shiprocket Guest') {
-          session.customer = { name: customerInfo.name, phone: customerInfo.phone, email: customerInfo.email };
-        }
-        if (customerInfo.address.address !== 'Shiprocket Checkout Attempt') {
-          session.shippingAddress = customerInfo.address;
-        }
-        session.raw = payload;
-        await session.save();
-
-        const kind = webhookKind(payload);
-        if (kind === 'failed') {
-          session.status = 'failed';
-          await session.save();
-          const resObj = {
-            success: true,
-            status: true,
-            message: 'Order status updated to failed',
-            order_id: orderId,
-          };
-          recordWebhookLog({ ip: req.ip, orderId, signature, payload, response: resObj });
-          return res.status(200).json(resObj);
-        }
-
-        order = await confirmOrderFromSession(session, payload);
-      }
-    }
-
-    // Fallback: If no session found or orderId was missing/numeric, build order directly from webhook payload
-    if (!order) {
-      const kind = webhookKind(payload);
-      if (kind === 'failed') {
-        const resObj = {
-          success: true,
-          status: true,
-          message: 'Order payment failed',
-          order_id: orderId || 'UNKNOWN',
-        };
-        recordWebhookLog({ ip: req.ip, orderId, signature, payload, response: resObj });
-        return res.status(200).json(resObj);
-      }
-      order = await createOrderFromFastrrPayload(payload, orderId);
-    }
-  } catch (err) {
-    logger.error(`Error processing Shiprocket webhook order: ${err.message}`, err);
-  }
-
-  const confirmedOrderId = order?.orderNumber || orderId || `SR-${Date.now()}`;
+  const confirmedOrderId = orderId || `SR-${Date.now()}`;
   const resObj = {
     success: true,
     status: true,
@@ -721,7 +668,46 @@ exports.webhook = asyncHandler(async (req, res) => {
   };
 
   recordWebhookLog({ ip: req.ip, orderId: confirmedOrderId, signature, payload, response: resObj });
-  return res.status(200).json(resObj);
+
+  // Instantly return HTTP 200 to Fastrr so the modal script never times out or shows "Order Pending"
+  res.status(200).json(resObj);
+
+  // Background async order processing
+  (async () => {
+    try {
+      if (orderId) {
+        const session = await ShiprocketCheckoutSession.findOne({ orderId }).maxTimeMS(5000);
+        if (session) {
+          const customerInfo = webhookCustomer(payload);
+          if (customerInfo.name !== 'Shiprocket Guest') {
+            session.customer = { name: customerInfo.name, phone: customerInfo.phone, email: customerInfo.email };
+          }
+          if (customerInfo.address.address !== 'Shiprocket Checkout Attempt') {
+            session.shippingAddress = customerInfo.address;
+          }
+          session.raw = payload;
+          await session.save();
+
+          const kind = webhookKind(payload);
+          if (kind === 'failed') {
+            session.status = 'failed';
+            await session.save();
+            return;
+          }
+
+          await confirmOrderFromSession(session, payload);
+          return;
+        }
+      }
+
+      const kind = webhookKind(payload);
+      if (kind !== 'failed') {
+        await createOrderFromFastrrPayload(payload, orderId);
+      }
+    } catch (err) {
+      logger.error(`Error processing Shiprocket webhook background order: ${err.message}`, err);
+    }
+  })();
 });
 
 /** GET /shiprocket-checkout/webhook-logs — returns recent 50 webhook logs for diagnosis */
