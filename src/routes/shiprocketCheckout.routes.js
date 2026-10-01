@@ -19,6 +19,9 @@ const sessionCtrl = require('../controllers/shiprocketSession.controller');
 
 const router = express.Router();
 
+// Log every incoming request under /shiprocket-checkout to recentWebhookLogs for live debugging
+router.use(sessionCtrl.logIncomingTraffic);
+
 // Catalogue sync is bursty — allow far more than the storefront limiter,
 // but still cap it so a misconfigured poller can't hammer the database.
 const syncLimiter = rateLimit({

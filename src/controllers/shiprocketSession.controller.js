@@ -561,6 +561,25 @@ function recordWebhookLog(entry) {
   if (recentWebhookLogs.length > 50) recentWebhookLogs.pop();
 }
 
+/** Express middleware to log ALL incoming Shiprocket Checkout traffic (webhook, shipping-charge, cart validate, etc.) */
+exports.logIncomingTraffic = (req, res, next) => {
+  if (req.path === '/webhook-logs') return next();
+  recordWebhookLog({
+    method: req.method,
+    path: req.path,
+    url: req.originalUrl,
+    ip: req.ip,
+    headers: {
+      'user-agent': req.headers['user-agent'],
+      'x-api-hmac-sha256': req.headers['x-api-hmac-sha256'] || req.headers['x-shiprocket-signature'] || req.headers['x-fastrr-signature'],
+      'content-type': req.headers['content-type'],
+    },
+    query: req.query,
+    body: req.body,
+  });
+  next();
+};
+
 /** POST /shiprocket-checkout/webhook — signed by Shiprocket/Fastrr. */
 exports.webhook = asyncHandler(async (req, res) => {
   const signature = req.headers['x-api-hmac-sha256'] || req.headers['x-shiprocket-signature'] || req.headers['x-fastrr-signature'];
