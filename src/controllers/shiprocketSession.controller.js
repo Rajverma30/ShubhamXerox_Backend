@@ -16,6 +16,7 @@ const { sellingPrice } = require('../utils/pricing');
 const logger = require('../utils/logger');
 const { toProduct, numericId } = require('../services/shiprocketCheckout.adapter');
 const catalogueSync = require('../services/shiprocketCatalogSync.service');
+const shiprocketShipping = require('../services/shiprocket.service');
 
 const CHECKOUT_UI = () => (process.env.SHIPROCKET_CHECKOUT_UI_BASE_URL || 'https://fastrr-boost-ui.pickrr.com').replace(/\/$/, '');
 const CATALOG_KEY = () => process.env.SHIPROCKET_CHECKOUT_API_KEY || process.env.SHIPROCKET_API_KEY || '';
