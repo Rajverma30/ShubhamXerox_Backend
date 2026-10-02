@@ -48,6 +48,12 @@ exports.sitemap = asyncHandler(async (_req, res) => {
     '/about',
     '/contact',
     '/store-indore',
+    '/blogs',
+    '/blogs/mp-government-jobs-2026-guide',
+    '/blogs/mppsc-2026-best-books-list',
+    '/blogs/mp-board-pariksha-bodh-vs-adhyayan',
+    '/blogs/ghatna-chakra-purvavlokan-hindi-english',
+    '/blogs/essential-stationery-for-mppsc-aspirants',
   ];
 
   const nodes = [

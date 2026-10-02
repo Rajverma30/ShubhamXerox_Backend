@@ -661,21 +661,46 @@ exports.logIncomingTraffic = (req, res, next) => {
   if (req.method === 'GET' && (req.path.includes('/products') || req.path.includes('/collections') || req.path === '/ping')) {
     return next();
   }
+  const safeHeaders = { ...req.headers };
+  for (const key of Object.keys(safeHeaders)) {
+    if (/authorization|cookie|secret|password/i.test(key)) safeHeaders[key] = '[REDACTED]';
+  }
   recordWebhookLog({
     method: req.method,
     path: req.path,
     url: req.originalUrl,
     ip: req.ip,
-    headers: {
-      'user-agent': req.headers['user-agent'],
-      'x-api-hmac-sha256': req.headers['x-api-hmac-sha256'] || req.headers['x-shiprocket-signature'] || req.headers['x-fastrr-signature'],
-      'content-type': req.headers['content-type'],
-    },
+    contentLength: req.headers['content-length'] || '0',
+    headers: safeHeaders,
     query: req.query,
     body: req.body,
   });
   next();
 };
+
+/**
+ * Fastrr sometimes POSTs an empty body (Content-Length: 0) after payment.
+ * Recover by confirming the most recent unpaid checkout session from this window.
+ */
+async function confirmLatestInitiatedSession(reason = 'empty-webhook') {
+  const since = new Date(Date.now() - 2 * 60 * 60 * 1000);
+  const session = await ShiprocketCheckoutSession.findOne({
+    status: 'initiated',
+    createdAt: { $gte: since },
+  })
+    .sort({ createdAt: -1 })
+    .maxTimeMS(5000);
+
+  if (!session) {
+    logger.warn(`Empty Fastrr webhook (${reason}): no initiated session in last 2h to recover`);
+    return null;
+  }
+
+  logger.info(`Empty Fastrr webhook (${reason}): recovering session ${session.orderId}`);
+  session.raw = { ...(session.raw || {}), recoveredFrom: reason, recoveredAt: new Date().toISOString() };
+  await session.save();
+  return confirmOrderFromSession(session, session.raw || { source: reason });
+}
 
 /** POST /shiprocket-checkout/webhook — signed by Shiprocket/Fastrr. */
 exports.webhook = asyncHandler(async (req, res) => {
@@ -703,7 +728,6 @@ exports.webhook = asyncHandler(async (req, res) => {
   }
 
   // Prefer raw bytes when JSON middleware got an empty object but Content-Length > 0
-  // (common when an upstream proxy rewrites Content-Type or double-parses poorly).
   const contentLength = Number(req.headers['content-length'] || 0);
   if (
     rawPayload && typeof rawPayload === 'object' && !Array.isArray(rawPayload)
@@ -716,24 +740,30 @@ exports.webhook = asyncHandler(async (req, res) => {
     } catch { /* keep empty */ }
   }
 
-  const payload = { ...req.query, ...rawPayload };
-  const payloadKeys = Object.keys(payload).filter((k) => payload[k] !== undefined);
+  // Also map common order-id headers Fastrr may send instead of a JSON body
+  const headerOrderId = first(
+    req.headers['x-order-id'],
+    req.headers['x-external-order-id'],
+    req.headers['x-merchant-order-id'],
+    req.headers['order-id'],
+    req.headers['external-order-id'],
+  );
+
+  const payload = {
+    ...req.query,
+    ...rawPayload,
+    ...(headerOrderId ? { external_order_id: String(headerOrderId) } : {}),
+  };
+  const payloadKeys = Object.keys(payload).filter((k) => payload[k] !== undefined && payload[k] !== '');
   logger.info(
     `Shiprocket webhook received (content-length=${contentLength}, rawBody=${req.rawBody?.length || 0}b, keys=${payloadKeys.length}): ` +
     `${JSON.stringify(payload).slice(0, 500)}`,
   );
 
-  if (!payloadKeys.length) {
-    logger.error(
-      'Shiprocket webhook body is EMPTY. Fastrr payment data never reached this server. ' +
-      'Point the webhook at the API host directly (e.g. https://subhamapi.hypernxt.space/shiprocket-checkout/webhook) ' +
-      'or fix the storefront proxy so it streams the raw POST body.',
-    );
-  }
-
   const orderId = extractOrderId(payload);
   let order = null;
   const kind = webhookKind(payload);
+  let recoveredFromEmpty = false;
 
   try {
     if (orderId) {
@@ -759,7 +789,17 @@ exports.webhook = asyncHandler(async (req, res) => {
             order_id: orderId,
             orderNumber: orderId,
           };
-          recordWebhookLog({ ip: req.ip, orderId, signature, payload, response: failObj });
+          recordWebhookLog({
+            ip: req.ip,
+            orderId,
+            signature,
+            contentLength,
+            rawBodyBytes: req.rawBody?.length || 0,
+            payloadKeys: payloadKeys.length,
+            allHeaders: req.headers,
+            payload,
+            response: failObj,
+          });
           return res.status(200).json(failObj);
         }
 
@@ -771,12 +811,25 @@ exports.webhook = asyncHandler(async (req, res) => {
     if (!order && kind !== 'failed') {
       order = await createOrderFromFastrrPayload(payload, orderId);
     }
+
+    // Fastrr often POSTs Content-Length:0 after payment (dashboard webhook with no payload mapping).
+    // Recover the most recent unpaid checkout session so the merchant order is still created
+    // and we can return a real SXSR-* id instead of a fake SR-timestamp.
+    if (!order && kind !== 'failed' && !payloadKeys.length) {
+      logger.error(
+        'Shiprocket webhook body is EMPTY (Content-Length:0). Fastrr did not send order JSON. ' +
+        'Attempting recovery from latest initiated checkout session. ' +
+        'Fix Fastrr dashboard → Webhooks → Real Time → ensure order payload / Additional Info is configured, ' +
+        'or ask Shiprocket support why the webhook POST has an empty body.',
+      );
+      order = await confirmLatestInitiatedSession('empty-webhook');
+      recoveredFromEmpty = Boolean(order);
+    }
   } catch (err) {
     logger.error(`Error processing Shiprocket webhook order: ${err.message}`, err);
   }
 
   // Fastrr checkout UI checks boolean `status: true` (same as shipping/cart stubs).
-  // Returning status: 'success' (string) leaves the modal on "Order Pending" even with HTTP 200.
   const confirmedOrderId = order?.orderNumber || orderId || `SR-${Date.now()}`;
   const resObj = {
     success: true,
@@ -785,8 +838,10 @@ exports.webhook = asyncHandler(async (req, res) => {
     code: 200,
     message: kind === 'failed' ? 'Order payment failed' : 'Order confirmed',
     order_id: confirmedOrderId,
+    id: confirmedOrderId,
     orderNumber: confirmedOrderId,
     order_number: confirmedOrderId,
+    merchant_order_id: confirmedOrderId,
     payment_status: kind === 'failed' ? 'FAILED' : 'PAID',
     data: {
       status: true,
@@ -794,7 +849,10 @@ exports.webhook = asyncHandler(async (req, res) => {
       payment_status: kind === 'failed' ? 'FAILED' : 'PAID',
       received: true,
       order_id: confirmedOrderId,
+      id: confirmedOrderId,
       orderNumber: confirmedOrderId,
+      merchant_order_id: confirmedOrderId,
+      recovered_from_empty_webhook: recoveredFromEmpty || undefined,
     },
   };
 
@@ -805,6 +863,10 @@ exports.webhook = asyncHandler(async (req, res) => {
     contentLength,
     rawBodyBytes: req.rawBody?.length || 0,
     payloadKeys: payloadKeys.length,
+    recoveredFromEmpty,
+    allHeaders: Object.fromEntries(
+      Object.entries(req.headers).map(([k, v]) => [/authorization|cookie|secret|password/i.test(k) ? k : k, /authorization|cookie|secret|password/i.test(k) ? '[REDACTED]' : v]),
+    ),
     payload,
     response: resObj,
   });
