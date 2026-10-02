@@ -51,8 +51,13 @@ exports.sitemap = asyncHandler(async (_req, res) => {
     '/blogs',
     '/blogs/mp-government-jobs-2026-guide',
     '/blogs/mppsc-2026-best-books-list',
-    '/blogs/mp-board-pariksha-bodh-vs-adhyayan',
     '/blogs/ghatna-chakra-purvavlokan-hindi-english',
+    '/blogs/mp-police-constable-best-books-2026',
+    '/blogs/buy-mppsc-books-in-indore',
+    '/blogs/current-affairs-for-mppsc-2026',
+    '/blogs/mp-patwari-mpesb-books-guide',
+    '/blogs/ncert-books-for-mppsc-2026',
+    '/blogs/mp-board-pariksha-bodh-vs-adhyayan',
     '/blogs/essential-stationery-for-mppsc-aspirants',
   ];
 
