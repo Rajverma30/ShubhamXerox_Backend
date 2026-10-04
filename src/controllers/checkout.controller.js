@@ -250,6 +250,10 @@ exports.createOrder = asyncHandler(async (req, res) => {
     shippingCharge: shipping.charge,
     total,
     status: 'awaiting-payment',
+    payment: {
+      provider: 'razorpay',
+      status: 'created',
+    },
   });
 
   // Save first: an order that exists without a payment is recoverable, a
@@ -261,8 +265,10 @@ exports.createOrder = asyncHandler(async (req, res) => {
     phone,
   });
 
+  if (!order.payment) order.payment = { provider: 'razorpay', status: 'created' };
   order.payment.razorpayOrderId = rzp.id;
   order.payment.amountPaisa = rzp.amount;
+  order.markModified('payment');
   await order.save();
 
   if (req.guestJti) {

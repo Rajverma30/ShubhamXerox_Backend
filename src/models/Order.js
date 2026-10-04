@@ -33,6 +33,38 @@ const orderItemSchema = new mongoose.Schema(
   { _id: false },
 );
 
+/**
+ * Explicit sub-schema so a field named `type` (GoKwik PREPAID / COD) is not
+ * mistaken by Mongoose for SchemaType options — that bug made `order.payment`
+ * undefined and broke Razorpay (`Cannot set … razorpayOrderId`).
+ */
+const paymentSchema = new mongoose.Schema(
+  {
+    provider: { type: String, default: 'razorpay' },
+    razorpayOrderId: { type: String, index: true },
+    razorpayPaymentId: { type: String, index: true },
+    razorpaySignature: String,
+    /** GoKwik order id (also used as platformOrderId). Indexed sparsely below. */
+    orderId: { type: String },
+    platformOrderId: String,
+    /** PREPAID | CASH_ON_DELIVERY (GoKwik). */
+    type: String,
+    method: String,              // upi / card / netbanking …
+    status: {
+      type: String,
+      enum: ['created', 'pending', 'paid', 'failed', 'refunded'],
+      default: 'created',
+      index: true,
+    },
+    checkoutStatus: String,
+    transactionId: String,
+    paidAt: Date,
+    /** Razorpay's own amount, in paise, as reported back to us. */
+    amountPaisa: Number,
+  },
+  { _id: false },
+);
+
 const orderSchema = new mongoose.Schema(
   {
     orderNumber: { type: String, unique: true, index: true },
@@ -69,29 +101,7 @@ const orderSchema = new mongoose.Schema(
     sessionKey: { type: String, index: true, sparse: true },
 
     /* ── payment ── */
-    payment: {
-      provider: { type: String, default: 'razorpay' },
-      razorpayOrderId: { type: String, index: true },
-      razorpayPaymentId: { type: String, index: true },
-      razorpaySignature: String,
-      /** GoKwik order id (also used as platformOrderId). Sparse unique for retries. */
-      orderId: { type: String, index: true, sparse: true, unique: true },
-      platformOrderId: String,
-      /** PREPAID | CASH_ON_DELIVERY (GoKwik). */
-      type: String,
-      method: String,              // upi / card / netbanking …
-      status: {
-        type: String,
-        enum: ['created', 'pending', 'paid', 'failed', 'refunded'],
-        default: 'created',
-        index: true,
-      },
-      checkoutStatus: String,
-      transactionId: String,
-      paidAt: Date,
-      /** Razorpay's own amount, in paise, as reported back to us. */
-      amountPaisa: Number,
-    },
+    payment: { type: paymentSchema, default: () => ({}) },
 
     /* ── fulfilment (manual) ── */
     status: {
@@ -154,6 +164,8 @@ const orderSchema = new mongoose.Schema(
 
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ 'customer.phone': 1, createdAt: -1 });
+/** Sparse unique: GoKwik place-order retries must not create duplicate orders. */
+orderSchema.index({ 'payment.orderId': 1 }, { unique: true, sparse: true });
 
 /** SX-YYMMDD-XXXXX. Generated before validation so `unique` can be enforced. */
 orderSchema.pre('validate', function setNumber(next) {
