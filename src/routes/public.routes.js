@@ -47,6 +47,7 @@ router.post('/auth/direct-session', writeLimiter, guestAuthCtrl.directSession);
 router.post('/checkout/quote', writeLimiter, checkoutCtrl.quote);
 router.post('/checkout/order', writeLimiter, requireVerifiedPhone, checkoutCtrl.createOrder);
 router.post('/checkout/verify', requireVerifiedPhone, checkoutCtrl.verifyPayment);
+router.post('/checkout/session', writeLimiter, require('../controllers/gokwikSession.controller').createSession);
 router.post('/checkout/shiprocket-session', writeLimiter, shiprocketSessionCtrl.createSession);
 router.post('/checkout/shiprocket-verify', shiprocketSessionCtrl.verifySession);
 router.get('/checkout/webhook-logs', shiprocketSessionCtrl.getWebhookLogs);

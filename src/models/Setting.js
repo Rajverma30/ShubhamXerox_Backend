@@ -71,8 +71,8 @@ const settingSchema = new mongoose.Schema(
      */
     checkout: {
       // Legacy values remain accepted so an old Settings document can be
-      // opened; every dashboard save normalises it to Razorpay or Shiprocket.
-      mode: { type: String, enum: ['razorpay', 'shiprocket', 'auto', 'whatsapp', 'off'], default: 'razorpay' },
+      // opened; every dashboard save normalises it to Razorpay, Shiprocket or GoKwik.
+      mode: { type: String, enum: ['razorpay', 'shiprocket', 'gokwik', 'auto', 'whatsapp', 'off'], default: 'razorpay' },
     },
 
     shiprocketAutoPush: { type: Boolean, default: true },

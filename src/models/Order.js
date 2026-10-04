@@ -27,6 +27,8 @@ const orderItemSchema = new mongoose.Schema(
     mrp: { type: Number, default: 0 },
     quantity: { type: Number, required: true, min: 1 },
     lineTotal: { type: Number, required: true },
+    /** Numeric product id GoKwik expects (derived from Mongo ObjectId). */
+    variantId: Number,
   },
   { _id: false },
 );
@@ -42,7 +44,9 @@ const orderSchema = new mongoose.Schema(
       phone: { type: String, required: true, index: true },
       email: { type: String, default: '', trim: true },
     },
-    shippingAddress: { type: addressSchema, required: true },
+    // required for Razorpay/Shiprocket; optional for all-digital GoKwik orders
+    shippingAddress: { type: addressSchema, required: false },
+    billingAddress: { type: addressSchema, required: false },
 
     /* ── what ── */
     items: { type: [orderItemSchema], required: true },
@@ -52,8 +56,17 @@ const orderSchema = new mongoose.Schema(
     shippingCharge: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
     couponCode: { type: String, default: '' },
+    /** GoKwik may apply more than one coupon code over the session lifetime. */
+    couponCodes: { type: [String], default: undefined },
+    couponDiscount: { type: Number, default: undefined },
+    prepaidDiscount: { type: Number, default: undefined },
+    codCharges: { type: Number, default: undefined },
+    fees: { type: [{ name: String, total: Number }], default: undefined },
     total: { type: Number, required: true },
     currency: { type: String, default: 'INR' },
+
+    /** GoKwik CheckoutSession.key — used for idempotent place-order retries. */
+    sessionKey: { type: String, index: true, sparse: true },
 
     /* ── payment ── */
     payment: {
@@ -61,13 +74,20 @@ const orderSchema = new mongoose.Schema(
       razorpayOrderId: { type: String, index: true },
       razorpayPaymentId: { type: String, index: true },
       razorpaySignature: String,
+      /** GoKwik order id (also used as platformOrderId). Sparse unique for retries. */
+      orderId: { type: String, index: true, sparse: true, unique: true },
+      platformOrderId: String,
+      /** PREPAID | CASH_ON_DELIVERY (GoKwik). */
+      type: String,
       method: String,              // upi / card / netbanking …
       status: {
         type: String,
-        enum: ['created', 'paid', 'failed', 'refunded'],
+        enum: ['created', 'pending', 'paid', 'failed', 'refunded'],
         default: 'created',
         index: true,
       },
+      checkoutStatus: String,
+      transactionId: String,
       paidAt: Date,
       /** Razorpay's own amount, in paise, as reported back to us. */
       amountPaisa: Number,
@@ -76,7 +96,7 @@ const orderSchema = new mongoose.Schema(
     /* ── fulfilment (manual) ── */
     status: {
       type: String,
-      enum: ['awaiting-payment', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled'],
+      enum: ['awaiting-payment', 'pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'failed'],
       default: 'awaiting-payment',
       index: true,
     },
@@ -102,6 +122,20 @@ const orderSchema = new mongoose.Schema(
 
     /** Set once, when payment first succeeds, so stock is never double-counted. */
     stockAdjusted: { type: Boolean, default: false },
+
+    /** Attribution / UTM source from GoKwik meta when present. */
+    source: { type: String, default: '' },
+
+    /** GoKwik refund webhook audit trail. */
+    refunds: {
+      type: [{
+        refundId: String,
+        amount: Number,
+        event: String,
+        at: Date,
+      }],
+      default: undefined,
+    },
 
     adminNotes: { type: String, default: '' },
     /** WhatsApp notification log */

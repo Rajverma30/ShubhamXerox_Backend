@@ -233,6 +233,23 @@ app.post(['/webhook', '/fastrr-webhook', '/shiprocket-webhook', '/order-create',
 app.use(SR_PREFIX, require('./routes/shiprocketCheckout.routes'));
 logger.info(`Shiprocket Checkout endpoints mounted at ${SR_PREFIX}`);
 
+/* ── GoKwik cart API (outside /api — matches WooCommerce plugin paths) ──
+   GoKwik's servers call these with App ID + App Secret headers. Mounted at
+   both the WordPress-shaped prefix and a plain alias. */
+const gokwikRoutes = require('./routes/gokwik.routes');
+app.use('/wp-json/gokwik/v1', gokwikRoutes);
+app.use('/gokwik/v1', gokwikRoutes);
+{
+  const gokwik = require('./services/gokwik/api');
+  if (gokwik.enabled()) {
+    logger.info(`GoKwik Checkout ready (${gokwik.environment()}) — cart API at /wp-json/gokwik/v1`);
+  } else if (gokwik.configured()) {
+    logger.warn('GoKwik credentials present but GOKWIK_ENABLED=false');
+  } else {
+    logger.info('GoKwik Checkout idle (set GOKWIK_MID / GOKWIK_APP_ID / GOKWIK_APP_SECRET to enable)');
+  }
+}
+
 /* ── API ── */
 app.use('/api', apiLimiter, routes);
 

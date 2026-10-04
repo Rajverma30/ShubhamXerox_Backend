@@ -14,7 +14,8 @@
     "seed": "node src/seed/seed.js",
     "seed:destroy": "node src/seed/seed.js --destroy",
     "doctor": "node src/seed/doctor.js",
-    "import:csv": "node src/seed/importLegacyCsv.js"
+    "import:csv": "node src/seed/importLegacyCsv.js",
+    "gokwik:check": "node src/scripts/gokwikCheck.js"
   },
   "dependencies": {
     "axios": "^1.7.7",

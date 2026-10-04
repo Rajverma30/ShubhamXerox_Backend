@@ -83,10 +83,10 @@ exports.getBySlug = asyncHandler(async (req, res) => {
         seo: { metaTitle: 'Speedy Current Affairs & MP Current Books | Shubham Xerox', metaDescription: 'Buy Speedy Current Affairs, MP Current Affairs, yearly guides online at Shubham Xerox.' },
       },
       'ghatna-chakra-books': {
-        name: 'Ghatna Chakra Series',
+        name: 'Ghatna Chakra',
         slug: 'ghatna-chakra-books',
-        shortDescription: 'Complete Ghatna Chakra Purvavlokan series for History, Polity, Geography, Science, and Environment.',
-        seo: { metaTitle: 'Ghatna Chakra Books & Purvavlokan Series | Shubham Xerox', metaDescription: 'Buy Ghatna Chakra Purvavlokan books online at best price from Shubham Xerox.' },
+        shortDescription: 'Complete Ghatna Chakra Purvavlokan for History, Polity, Geography, Science, and Environment.',
+        seo: { metaTitle: 'Ghatna Chakra Books & Purvavlokan | Shubham Xerox', metaDescription: 'Buy Ghatna Chakra Purvavlokan books online at best price from Shubham Xerox.' },
       },
     };
 

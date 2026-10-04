@@ -41,7 +41,7 @@ exports.sitemap = asyncHandler(async (_req, res) => {
     '/category/mppsc-mains-books',
     '/category/mpesb-books',
     '/category/current-affairs-books',
-    '/category/ghatna-chakra-books',
+    '/collection/ghatna-chakra-publication',
     '/ebooks',
     '/stationery',
     '/offers',

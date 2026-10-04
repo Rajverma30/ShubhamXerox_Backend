@@ -57,7 +57,7 @@ exports.adminUpdateSettings = asyncHandler(async (req, res) => {
     Object.keys(body.policies).forEach((k) => { body.policies[k] = cleanRichText(body.policies[k]); });
   }
   delete body.singleton;
-  if (body.checkout?.mode && !['razorpay', 'shiprocket'].includes(body.checkout.mode)) {
+  if (body.checkout?.mode && !['razorpay', 'shiprocket', 'gokwik'].includes(body.checkout.mode)) {
     body.checkout.mode = 'razorpay';
   }
   Object.assign(s, body);

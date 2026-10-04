@@ -11,6 +11,7 @@ module.exports = {
   Order: require('./Order'),
   Otp: require('./Otp'),
   GuestCheckoutSession: require('./GuestCheckoutSession'),
+  CheckoutSession: require('./CheckoutSession'),
   Product: require('./Product'),
   Review: require('./Review'),
   ShiprocketCheckoutSession: require('./ShiprocketCheckoutSession'),

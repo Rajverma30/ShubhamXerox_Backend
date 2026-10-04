@@ -856,7 +856,10 @@ exports.adminUpdateOrder = asyncHandler(async (req, res) => {
     if (!Order.schema.path('status').enumValues.includes(status)) {
       throw ApiError.badRequest(`Unknown status "${status}"`);
     }
-    if (status !== 'cancelled' && doc.payment.status !== 'paid') {
+    // GoKwik COD orders are confirmed with payment.status "pending" — still fulfilable.
+    const gokwikCod = doc.payment?.provider === 'gokwik'
+      && String(doc.payment?.type || '').toUpperCase() === 'CASH_ON_DELIVERY';
+    if (status !== 'cancelled' && doc.payment.status !== 'paid' && !gokwikCod) {
       throw ApiError.badRequest('This order has not been paid for yet');
     }
     doc.status = status;
@@ -870,6 +873,15 @@ exports.adminUpdateOrder = asyncHandler(async (req, res) => {
   if (adminNotes !== undefined) doc.adminNotes = adminNotes;
 
   await doc.save();
+
+  // Keep GoKwik's dashboard in step when status or AWB changes.
+  if (doc.payment?.provider === 'gokwik') {
+    try {
+      const gokwik = require('../services/gokwik/api');
+      gokwik.notifyOrderUpdate(doc).catch(() => {});
+    } catch { /* optional */ }
+  }
+
   return ok(res, doc);
 });
 
