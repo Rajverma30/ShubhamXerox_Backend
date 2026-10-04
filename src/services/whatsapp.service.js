@@ -6,13 +6,35 @@
  *   WHATSAPP_API_KEY         (Optional) Authorization API Key / Bearer token
  *   WHATSAPP_SENDER_NUMBER   (Optional) Defaults to 9826462963
  *   WHATSAPP_ENABLED         (Optional) "true" or "false" (default: true)
+ *   STOREFRONT_PUBLIC_URL    (Optional) Customer-facing store URL used in WhatsApp links
+ *                            (defaults to https://shubhamxerox.in; never uses *.web.app staging hosts)
  */
 const axios = require('axios');
 const logger = require('../utils/logger');
 
+const DEFAULT_STORE_URL = 'https://shubhamxerox.in';
+
+function cleanUrl(value) {
+  return String(value || '')
+    .trim()
+    .replace(/^['"]|['"]$/g, '')
+    .replace(/\/+$/, '');
+}
+
+/**
+ * Public storefront URL for customer WhatsApp links.
+ * FRONTEND_URL may point at Firebase staging for CORS/deploys — that must not
+ * appear in payment / order links sent to customers.
+ */
 function getFrontendUrl() {
-  let url = process.env.FRONTEND_URL || 'https://www.shubhamxerox.in';
-  return url.replace(/\/+$/, '');
+  const preferred = cleanUrl(process.env.STOREFRONT_PUBLIC_URL || process.env.PUBLIC_STORE_URL);
+  if (preferred) return preferred;
+
+  let url = cleanUrl(process.env.FRONTEND_URL) || DEFAULT_STORE_URL;
+  if (/web\.app|firebaseapp\.com/i.test(url)) {
+    url = DEFAULT_STORE_URL;
+  }
+  return url || DEFAULT_STORE_URL;
 }
 
 function getSenderNumber() {
