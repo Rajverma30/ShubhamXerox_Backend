@@ -31,7 +31,7 @@ const bad = (m, fix) => { failures += 1; console.log(`  ${RED}✗${RESET} ${m}${
 
 (async () => {
   const cfg = gokwik.config();
-  const host = String(process.argv[2] || process.env.BACKEND_URL || '').replace(/\/$/, '');
+  const host = String(process.argv[2] || process.env.FRONTEND_URL || process.env.BACKEND_URL || '').replace(/\/$/, '');
   const PREFIX = '/wp-json/gokwik/v1';
 
   console.log('\nCredentials (.env)');
@@ -132,8 +132,9 @@ const bad = (m, fix) => { failures += 1; console.log(`  ${RED}✗${RESET} ${m}${
       console.log(`${RED}${failures} problem(s) to fix before GoKwik can use this server.${RESET}\n`);
       process.exit(1);
     }
+    const cartApi = `${host}${PREFIX}/cart`;
     console.log(`${GREEN}Your side is ready.${RESET} What remains is on GoKwik's side: they must point Merchant ID`);
-    console.log(`${cfg.mid || '(unset)'} at  ${host}  — see GOKWIK.md, "What to send GoKwik".\n`);
+    console.log(`${cfg.mid || '(unset)'} at  ${cartApi}  — see GOKWIK.md, "What to send GoKwik".\n`);
     process.exit(0);
   }
 })().catch((err) => {
