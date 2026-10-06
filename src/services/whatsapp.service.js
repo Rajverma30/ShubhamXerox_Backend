@@ -136,6 +136,13 @@ function buildOrderConfirmationMessage(order) {
  * Supports configured WhatsApp API Gateway (Meta, UltraMsg, Wati, Interakt, Twilio, etc.)
  * or logs wa.me deep-link in fallback mode when API key is not configured.
  */
+function cleanEnv(value) {
+  return String(value || '')
+    .trim()
+    .replace(/^['"]+|['"]+$/g, '')
+    .trim();
+}
+
 async function sendWhatsAppMessage({ phone, message }) {
   const targetPhone = normalisePhone(phone);
   if (!targetPhone) {
@@ -146,8 +153,8 @@ async function sendWhatsAppMessage({ phone, message }) {
   const encodedMsg = encodeURIComponent(message);
   const waLink = `https://wa.me/${targetPhone}?text=${encodedMsg}`;
 
-  const apiUrl = process.env.WHATSAPP_API_URL;
-  const apiKey = process.env.WHATSAPP_API_KEY;
+  const apiUrl = cleanEnv(process.env.WHATSAPP_API_URL);
+  const apiKey = cleanEnv(process.env.WHATSAPP_API_KEY);
 
   if (!apiUrl || !apiKey) {
     logger.info(`[WhatsApp Service] (Dev/Fallback mode) Message to ${targetPhone}:\n${message}\nDeep-link: ${waLink}`);
