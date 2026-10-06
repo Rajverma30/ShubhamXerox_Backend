@@ -95,15 +95,17 @@ function buildOrderConfirmationMessage(order) {
   const isCod = order.payment?.type === 'CASH_ON_DELIVERY' || order.payment?.method === 'cod';
 
   if (isCod) {
+    const codFeeLine = order.codCharges ? `• COD Handling Fee: ₹${order.codCharges}\n` : '• COD Handling Fee: ₹49\n';
     return (
       `Namaste ${name}! 🙏\n\n` +
       `Shubham Xerox par aapka COD Order successfully place ho gaya hai! 🎉\n\n` +
-      `Delivery par aapko ₹${total} (Subtotal ₹${order.subtotal} + ₹69 Delivery Charge) cash/UPI se dena hoga. 📦\n\n` +
+      `Delivery par aapko ₹${total} cash/UPI se dena hoga. 📦\n\n` +
       `📋 *Order Summary:*\n` +
       `• Order Number: #${orderNum}\n` +
       `• Payment Mode: Cash on Delivery (COD)\n` +
       `• Items Subtotal: ₹${order.subtotal}\n` +
       `• Delivery Charge: ₹${order.shippingCharge || 69}\n` +
+      `${codFeeLine}` +
       `• Total Payable on Delivery: ₹${total}\n` +
       `• Total Items: ${itemCount} item(s)\n\n` +
       `🔗 *View Order Details:* \n` +

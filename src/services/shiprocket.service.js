@@ -523,6 +523,10 @@ async function createAdhocOrder(order) {
 
   const pickup = await resolvePickupLocationName();
 
+  const shippingCharges = Number(order.shippingCharge ?? (isCod ? 69 : 0));
+  const codCharges = isCod ? Number(order.codCharges ?? 49) : 0;
+  const totalDiscount = Number(order.discount || 0);
+
   const payload = {
     order_id: channelOrderId,
     order_date: orderDateFormatted,
@@ -540,7 +544,10 @@ async function createAdhocOrder(order) {
     shipping_is_billing: true,
     order_items: orderItems,
     payment_method: isCod ? 'COD' : (order.payment?.status === 'paid' ? 'Prepaid' : 'COD'),
-    sub_total: isCod ? order.subtotal : subTotal,
+    sub_total: Number(order.subtotal ?? subTotal ?? 0),
+    shipping_charges: shippingCharges,
+    transaction_charges: codCharges,
+    total_discount: totalDiscount,
     length: 10,
     breadth: 10,
     height: 5,
