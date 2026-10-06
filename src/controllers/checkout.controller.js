@@ -960,14 +960,20 @@ exports.adminUpdateOrder = asyncHandler(async (req, res) => {
 
   const { status, courier, awb, trackingUrl, adminNotes } = req.body;
 
+  const previousUrl = doc.tracking?.url || '';
+
   if (status) {
     if (!Order.schema.path('status').enumValues.includes(status)) {
       throw ApiError.badRequest(`Unknown status "${status}"`);
     }
-    // GoKwik COD orders are confirmed with payment.status "pending" — still fulfilable.
+    // COD orders or confirmed orders can be fulfilled even with payment.status "pending".
     const gokwikCod = doc.payment?.provider === 'gokwik'
       && String(doc.payment?.type || '').toUpperCase() === 'CASH_ON_DELIVERY';
-    if (status !== 'cancelled' && doc.payment.status !== 'paid' && !gokwikCod) {
+    const isCod = doc.payment?.method === 'cod' || doc.payment?.type === 'COD' || doc.payment?.type === 'CASH_ON_DELIVERY' || doc.payment?.provider === 'cod' || gokwikCod;
+    const isPaid = doc.payment?.status === 'paid';
+    const isConfirmed = doc.status === 'confirmed';
+
+    if (status !== 'cancelled' && !isPaid && !isCod && !isConfirmed) {
       throw ApiError.badRequest('This order has not been paid for yet');
     }
     doc.status = status;
@@ -981,6 +987,20 @@ exports.adminUpdateOrder = asyncHandler(async (req, res) => {
   if (adminNotes !== undefined) doc.adminNotes = adminNotes;
 
   await doc.save();
+
+  // If trackingUrl was provided/updated and non-empty, auto-send WhatsApp notification to customer
+  const newUrl = (doc.tracking?.url || '').trim();
+  if (newUrl && newUrl !== previousUrl.trim()) {
+    try {
+      await whatsapp.sendTrackingWhatsApp(doc, newUrl);
+      if (!doc.whatsappNotifications) doc.whatsappNotifications = {};
+      doc.whatsappNotifications.trackingSent = true;
+      doc.whatsappNotifications.trackingSentAt = new Date();
+      await doc.save();
+    } catch (waErr) {
+      logger.error('Failed to send auto tracking WhatsApp:', waErr);
+    }
+  }
 
   // Keep GoKwik's dashboard in step when status or AWB changes.
   if (doc.payment?.provider === 'gokwik') {
@@ -1047,6 +1067,11 @@ exports.adminSendWhatsApp = asyncHandler(async (req, res) => {
     if (!order.whatsappNotifications) order.whatsappNotifications = {};
     order.whatsappNotifications.orderConfirmedSent = result.sent;
     order.whatsappNotifications.orderConfirmedSentAt = new Date();
+  } else if (type === 'tracking') {
+    result = await whatsapp.sendTrackingWhatsApp(order, req.body.url || order.tracking?.url);
+    if (!order.whatsappNotifications) order.whatsappNotifications = {};
+    order.whatsappNotifications.trackingSent = result.sent;
+    order.whatsappNotifications.trackingSentAt = new Date();
   } else {
     result = await whatsapp.sendPaymentPendingWhatsApp(order);
     if (!order.whatsappNotifications) order.whatsappNotifications = {};
@@ -1081,9 +1106,15 @@ exports.adminPushToShiprocket = asyncHandler(async (req, res) => {
   const order = isObjectId ? await Order.findById(id) : await Order.findOne({ orderNumber: id });
   if (!order) throw ApiError.notFound('Order not found');
 
-  if (order.payment?.status !== 'paid') {
+  const gokwikCod = order.payment?.provider === 'gokwik'
+    && String(order.payment?.type || '').toUpperCase() === 'CASH_ON_DELIVERY';
+  const isCod = order.payment?.method === 'cod' || order.payment?.type === 'COD' || order.payment?.type === 'CASH_ON_DELIVERY' || order.payment?.provider === 'cod' || gokwikCod;
+  const isPaid = order.payment?.status === 'paid';
+  const isConfirmed = order.status === 'confirmed';
+
+  if (!isPaid && !isCod && !isConfirmed) {
     throw ApiError.badRequest(
-      'Sirf paid orders Shiprocket pe push ho sakte hain. Is order ka payment abhi confirm nahi hua.',
+      'Sirf paid ya confirmed COD orders Shiprocket pe push ho sakte hain. Is order ka payment abhi confirm nahi hua.',
     );
   }
 

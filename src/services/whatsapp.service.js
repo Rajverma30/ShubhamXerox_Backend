@@ -209,6 +209,33 @@ async function sendWhatsAppMessage({ phone, message }) {
 }
 
 /**
+ * Build Courier Tracking Link WhatsApp message text.
+ */
+function buildTrackingMessage(order, customUrl) {
+  const name = order.customer?.name || 'Customer';
+  const orderNum = order.orderNumber || '';
+  const trackingUrl = (customUrl || order.tracking?.url || '').trim();
+  const courier = order.tracking?.courier || '';
+  const awb = order.tracking?.awb || '';
+  const sender = getSenderNumber();
+
+  let detailsText = '';
+  if (courier) detailsText += `🚚 *Courier Partner:* ${courier}\n`;
+  if (awb) detailsText += `📦 *AWB / Tracking No:* ${awb}\n`;
+  detailsText += `🔗 *Live Tracking Link:*\n${trackingUrl}`;
+
+  return (
+    `Namaste ${name}! 🙏\n\n` +
+    `Aapka Shubham Xerox Order #${orderNum} dispatch ho gaya hai! 🚀\n\n` +
+    `${detailsText}\n\n` +
+    `Aap upar diye gaye link se apne parcel ki live location dekh sakte hain.\n\n` +
+    `Kisi bhi help ya query ke liye hume is WhatsApp number par contact karein: ${sender} 💬\n\n` +
+    `Dhanyawad! ❤️\n` +
+    `Shubham Xerox Team`
+  );
+}
+
+/**
  * Send Payment Pending Notification for an Order.
  */
 async function sendPaymentPendingWhatsApp(order) {
@@ -226,12 +253,26 @@ async function sendOrderConfirmationWhatsApp(order) {
   return sendWhatsAppMessage({ phone: order.customer.phone, message });
 }
 
+/**
+ * Send Tracking Link Notification for an Order.
+ */
+async function sendTrackingWhatsApp(order, customUrl) {
+  if (!order || !order.customer?.phone) return { sent: false, error: 'No customer phone' };
+  const url = customUrl || order.tracking?.url;
+  if (!url) return { sent: false, error: 'No tracking URL provided' };
+  const message = buildTrackingMessage(order, url);
+  return sendWhatsAppMessage({ phone: order.customer.phone, message });
+}
+
 module.exports = {
   sendWhatsAppMessage,
   sendPaymentPendingWhatsApp,
   sendOrderConfirmationWhatsApp,
+  sendTrackingWhatsApp,
   buildPaymentPendingMessage,
   buildOrderConfirmationMessage,
+  buildTrackingMessage,
   buildPaymentUrl,
   getSenderNumber,
 };
+
