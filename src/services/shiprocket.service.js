@@ -519,7 +519,7 @@ async function createAdhocOrder(order) {
     channelOrderId = `${channelOrderId}`.slice(0, 16) + String(Date.now()).slice(-4);
   }
 
-  const pickup = await resolvePickupLocationName();
+  const isCod = order.payment?.type === 'CASH_ON_DELIVERY' || order.payment?.method === 'cod';
 
   const payload = {
     order_id: channelOrderId,
@@ -537,8 +537,8 @@ async function createAdhocOrder(order) {
     billing_phone: phone,
     shipping_is_billing: true,
     order_items: orderItems,
-    payment_method: order.payment?.status === 'paid' ? 'Prepaid' : 'COD',
-    sub_total: subTotal,
+    payment_method: isCod ? 'COD' : (order.payment?.status === 'paid' ? 'Prepaid' : 'COD'),
+    sub_total: isCod ? order.subtotal : subTotal,
     length: 10,
     breadth: 10,
     height: 5,

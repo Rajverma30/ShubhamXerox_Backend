@@ -229,9 +229,23 @@ exports.createOrder = asyncHandler(async (req, res) => {
   const name = String(req.body.customer?.name || '').trim();
   if (name.length < 2) throw ApiError.badRequest('Please enter your name');
 
-  const shipping = await shippingFor({ pincode, weight, declaredValue: subtotal });
+  const paymentMethod = req.body.paymentMethod === 'cod' ? 'cod' : 'online';
+  const isCod = paymentMethod === 'cod';
 
-  const total = subtotal + shipping.charge;
+  let shippingCharge;
+  let total;
+  let razorpayChargeRupees;
+
+  if (isCod) {
+    shippingCharge = 69;
+    total = subtotal + shippingCharge;
+    razorpayChargeRupees = shippingCharge; // ₹69 paid online upfront via Razorpay
+  } else {
+    const shipping = await shippingFor({ pincode, weight, declaredValue: subtotal });
+    shippingCharge = shipping.charge;
+    total = subtotal + shippingCharge;
+    razorpayChargeRupees = total;
+  }
 
   const order = new Order({
     customer: { name, phone, email: String(req.body.customer?.email || '').trim() },
@@ -247,12 +261,14 @@ exports.createOrder = asyncHandler(async (req, res) => {
     },
     items: lines,
     subtotal,
-    shippingCharge: shipping.charge,
+    shippingCharge,
     total,
     status: 'awaiting-payment',
     payment: {
       provider: 'razorpay',
       status: 'created',
+      type: isCod ? 'CASH_ON_DELIVERY' : 'PREPAID',
+      method: isCod ? 'cod' : 'online',
     },
   });
 
@@ -260,14 +276,17 @@ exports.createOrder = asyncHandler(async (req, res) => {
   // payment that exists without an order is a support ticket.
   await order.save();
 
-  const rzp = await razorpay.createOrder(total, order.orderNumber, {
+  const rzp = await razorpay.createOrder(razorpayChargeRupees, order.orderNumber, {
     orderNumber: order.orderNumber,
     phone,
+    paymentMethod,
   });
 
   if (!order.payment) order.payment = { provider: 'razorpay', status: 'created' };
   order.payment.razorpayOrderId = rzp.id;
   order.payment.amountPaisa = rzp.amount;
+  order.payment.type = isCod ? 'CASH_ON_DELIVERY' : 'PREPAID';
+  order.payment.method = isCod ? 'cod' : 'online';
   order.markModified('payment');
   await order.save();
 
@@ -281,7 +300,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
     await session.save();
   }
 
-  logger.info(`Order ${order.orderNumber} created — ₹${total} (${lines.length} lines) → ${rzp.id}`);
+  logger.info(`Order ${order.orderNumber} created [${paymentMethod.toUpperCase()}] — total ₹${total} (Razorpay charge: ₹${razorpayChargeRupees}) → ${rzp.id}`);
 
   // Send WhatsApp awaiting-payment notification after 20 seconds delay ONLY if order is still unpaid
   setTimeout(async () => {
@@ -314,12 +333,13 @@ exports.createOrder = asyncHandler(async (req, res) => {
   return created(res, {
     orderNumber: order.orderNumber,
     razorpayOrderId: rzp.id,
-    amount: rzp.amount,             // paise, for the Razorpay widget
+    amount: rzp.amount,             // paise, for the Razorpay widget (6900 for COD, or total in paise for online)
     currency: 'INR',
     keyId: razorpay.publicKey(),    // publishable id, safe in the browser
     subtotal,
-    shippingCharge: shipping.charge,
+    shippingCharge,
     total,
+    paymentMethod,
     customer: { name, phone, email: order.customer.email },
   });
 });
