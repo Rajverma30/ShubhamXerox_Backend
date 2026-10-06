@@ -521,6 +521,8 @@ async function createAdhocOrder(order) {
 
   const isCod = order.payment?.type === 'CASH_ON_DELIVERY' || order.payment?.method === 'cod';
 
+  const pickup = await resolvePickupLocationName();
+
   const payload = {
     order_id: channelOrderId,
     order_date: orderDateFormatted,
