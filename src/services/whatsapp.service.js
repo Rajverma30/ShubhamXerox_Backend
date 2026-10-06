@@ -165,8 +165,8 @@ async function sendWhatsAppMessage({ phone, message }) {
     let response;
     
     if (apiUrl.includes('ultramsg.com')) {
-      // UltraMsg native request format (application/x-www-form-urlencoded)
-      const formattedTo = targetPhone.startsWith('+') ? targetPhone : `+${targetPhone}`;
+      // UltraMsg native request format (application/x-www-form-urlencoded, 'to' without '+' prefix)
+      const formattedTo = targetPhone.replace(/\D/g, '');
       const params = new URLSearchParams();
       params.append('token', apiKey);
       params.append('to', formattedTo);

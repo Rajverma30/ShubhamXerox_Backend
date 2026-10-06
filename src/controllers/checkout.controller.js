@@ -370,14 +370,29 @@ exports.createOrder = asyncHandler(async (req, res) => {
 
   logger.info(`Online Order ${order.orderNumber} created — total ₹${total} → ${rzp.id}`);
 
-  // Send WhatsApp delayed payment pending alert (after 20s)
+  // Send WhatsApp payment pending alert IMMEDIATELY on online attempt creation
+  whatsapp.sendPaymentPendingWhatsApp(order).then(async (waRes) => {
+    try {
+      await Order.updateOne(
+        { _id: order._id },
+        {
+          $set: {
+            'whatsappNotifications.awaitingPaymentSent': waRes?.sent ?? false,
+            'whatsappNotifications.awaitingPaymentSentAt': new Date(),
+            ...(waRes?.error ? { 'whatsappNotifications.lastError': waRes.error } : {}),
+          },
+        }
+      );
+    } catch (_) { /* ignore update error */ }
+  }).catch((e) => logger.warn(`Failed sending immediate WA payment pending for ${order.orderNumber}: ${e.message}`));
+
+  // Secondary backup check after 20s if still unpaid
   setTimeout(async () => {
     try {
       const latestOrder = await Order.findById(order._id);
       if (!latestOrder) return;
 
-      if (latestOrder.payment?.status === 'paid') {
-        logger.info(`Skipping WA awaiting-payment for ${latestOrder.orderNumber}: Order is already PAID`);
+      if (latestOrder.payment?.status === 'paid' || latestOrder.whatsappNotifications?.awaitingPaymentSent) {
         return;
       }
 
