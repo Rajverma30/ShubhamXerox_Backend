@@ -191,16 +191,25 @@ exports.quote = asyncHandler(async (req, res) => {
   const { lines, subtotal, weight, problems } = await priceCart(req.body.items);
 
   const pincode = String(req.body.pincode || '').trim();
+  const paymentMethod = req.body.paymentMethod === 'cod' ? 'cod' : 'online';
+  const isCod = paymentMethod === 'cod';
+
   let shipping = { charge: 0, courier: null, etd: '3–5 days', serviceable: true, reason: 'no-pincode' };
-  if (/^\d{6}$/.test(pincode)) {
+  if (isCod) {
+    shipping = { charge: 69, courier: 'COD Express', etd: '3–5 days', serviceable: true, reason: 'cod-fixed' };
+  } else if (/^\d{6}$/.test(pincode)) {
     shipping = await shippingFor({ pincode, weight, declaredValue: subtotal });
   }
+
+  const codCharges = isCod ? 49 : 0;
+  const total = subtotal + shipping.charge + codCharges;
 
   return ok(res, {
     items: lines,
     subtotal,
     shippingCharge: shipping.charge,
-    total: subtotal + shipping.charge,
+    codCharges,
+    total,
     shipping,
     problems,
   });
@@ -233,11 +242,13 @@ exports.createOrder = asyncHandler(async (req, res) => {
   const isCod = paymentMethod === 'cod';
 
   let shippingCharge;
+  let codCharges = 0;
   let total;
 
   if (isCod) {
     shippingCharge = 69;
-    total = subtotal + shippingCharge;
+    codCharges = 49;
+    total = subtotal + shippingCharge + codCharges;
   } else {
     const shipping = await shippingFor({ pincode, weight, declaredValue: subtotal });
     shippingCharge = shipping.charge;
@@ -259,6 +270,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
     items: lines,
     subtotal,
     shippingCharge,
+    codCharges: isCod ? codCharges : undefined,
     total,
     status: isCod ? 'confirmed' : 'awaiting-payment',
     payment: {
