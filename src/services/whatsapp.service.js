@@ -97,13 +97,14 @@ function buildOrderConfirmationMessage(order) {
   if (isCod) {
     return (
       `Namaste ${name}! 🙏\n\n` +
-      `Shubham Xerox par aapka COD Order successfully confirm ho gaya hai! 🎉\n\n` +
-      `Aapne ₹69 Delivery Charge online pay kar diya hai. Baki balance (₹${order.subtotal}) aapko delivery par cash/UPI se dena hoga. 📦\n\n` +
+      `Shubham Xerox par aapka COD Order successfully place ho gaya hai! 🎉\n\n` +
+      `Delivery par aapko ₹${total} (Subtotal ₹${order.subtotal} + ₹69 Delivery Charge) cash/UPI se dena hoga. 📦\n\n` +
       `📋 *Order Summary:*\n` +
       `• Order Number: #${orderNum}\n` +
       `• Payment Mode: Cash on Delivery (COD)\n` +
-      `• Delivery Charge (Paid Online): ₹69\n` +
-      `• Amount Payable on Delivery: ₹${order.subtotal}\n` +
+      `• Items Subtotal: ₹${order.subtotal}\n` +
+      `• Delivery Charge: ₹${order.shippingCharge || 69}\n` +
+      `• Total Payable on Delivery: ₹${total}\n` +
       `• Total Items: ${itemCount} item(s)\n\n` +
       `🔗 *View Order Details:* \n` +
       `${orderUrl}\n\n` +

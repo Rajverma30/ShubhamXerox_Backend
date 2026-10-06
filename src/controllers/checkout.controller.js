@@ -234,17 +234,14 @@ exports.createOrder = asyncHandler(async (req, res) => {
 
   let shippingCharge;
   let total;
-  let razorpayChargeRupees;
 
   if (isCod) {
     shippingCharge = 69;
     total = subtotal + shippingCharge;
-    razorpayChargeRupees = shippingCharge; // ₹69 paid online upfront via Razorpay
   } else {
     const shipping = await shippingFor({ pincode, weight, declaredValue: subtotal });
     shippingCharge = shipping.charge;
     total = subtotal + shippingCharge;
-    razorpayChargeRupees = total;
   }
 
   const order = new Order({
@@ -263,20 +260,80 @@ exports.createOrder = asyncHandler(async (req, res) => {
     subtotal,
     shippingCharge,
     total,
-    status: 'awaiting-payment',
+    status: isCod ? 'confirmed' : 'awaiting-payment',
     payment: {
-      provider: 'razorpay',
-      status: 'created',
+      provider: isCod ? 'cod' : 'razorpay',
+      status: isCod ? 'pending' : 'created',
       type: isCod ? 'CASH_ON_DELIVERY' : 'PREPAID',
       method: isCod ? 'cod' : 'online',
     },
   });
 
-  // Save first: an order that exists without a payment is recoverable, a
-  // payment that exists without an order is a support ticket.
+  if (isCod) {
+    // Save COD order directly
+    await order.save();
+
+    // Adjust stock immediately for COD order
+    const stockLock = await Order.findOneAndUpdate(
+      { _id: order._id, stockAdjusted: { $ne: true } },
+      { $set: { stockAdjusted: true } },
+      { new: true },
+    );
+    if (stockLock) await decrementStockForOrder(stockLock);
+
+    logger.info(`COD Order ${order.orderNumber} placed directly — Total ₹${total} (Subtotal ₹${subtotal} + Shipping ₹${shippingCharge})`);
+
+    // Consume guest checkout session
+    if (req.guestJti) {
+      const session = await GuestCheckoutSession.findOne({ jti: req.guestJti, phone });
+      if (session) {
+        session.consumedAt = session.consumedAt || new Date();
+        session.orderNumber = order.orderNumber;
+        await session.save();
+      }
+    }
+
+    // Send WhatsApp order confirmation greeting right away
+    whatsapp.sendOrderConfirmationWhatsApp(order).catch((e) =>
+      logger.warn(`Failed sending WA COD order confirmation for ${order.orderNumber}: ${e.message}`)
+    );
+
+    // Auto-push to Shiprocket if enabled
+    try {
+      const settings = await Setting.getSingleton();
+      if (settings?.shiprocketAutoPush && !order.shiprocket?.orderId) {
+        const srRes = await shiprocket.createAdhocOrder(order);
+        if (srRes.order_id) {
+          order.shiprocket = {
+            orderId: String(srRes.order_id),
+            shipmentId: String(srRes.shipment_id || ''),
+            awb: String(srRes.awb_code || ''),
+            status: srRes.status || 'CREATED',
+            channelOrderId: srRes.channelOrderId || '',
+            pushedAt: new Date(),
+            error: null,
+          };
+          await order.save();
+        }
+      }
+    } catch (srErr) {
+      logger.warn(`Failed auto-pushing COD order ${order.orderNumber} to Shiprocket: ${srErr.message}`);
+    }
+
+    return created(res, {
+      orderNumber: order.orderNumber,
+      isCod: true,
+      total,
+      subtotal,
+      shippingCharge,
+      customer: { name, phone, email: order.customer.email },
+    });
+  }
+
+  // ONLINE PAYMENT PATH (Razorpay)
   await order.save();
 
-  const rzp = await razorpay.createOrder(razorpayChargeRupees, order.orderNumber, {
+  const rzp = await razorpay.createOrder(total, order.orderNumber, {
     orderNumber: order.orderNumber,
     phone,
     paymentMethod,
@@ -285,30 +342,28 @@ exports.createOrder = asyncHandler(async (req, res) => {
   if (!order.payment) order.payment = { provider: 'razorpay', status: 'created' };
   order.payment.razorpayOrderId = rzp.id;
   order.payment.amountPaisa = rzp.amount;
-  order.payment.type = isCod ? 'CASH_ON_DELIVERY' : 'PREPAID';
-  order.payment.method = isCod ? 'cod' : 'online';
+  order.payment.type = 'PREPAID';
+  order.payment.method = 'online';
   order.markModified('payment');
   await order.save();
 
   if (req.guestJti) {
     const session = await GuestCheckoutSession.findOne({ jti: req.guestJti, phone });
-    if (!session || session.expiresAt < new Date()) {
-      throw ApiError.unauthorized('Your checkout session expired. Please verify your number again.');
+    if (session) {
+      session.consumedAt = session.consumedAt || new Date();
+      session.orderNumber = order.orderNumber;
+      await session.save();
     }
-    session.consumedAt = session.consumedAt || new Date();
-    session.orderNumber = order.orderNumber;
-    await session.save();
   }
 
-  logger.info(`Order ${order.orderNumber} created [${paymentMethod.toUpperCase()}] — total ₹${total} (Razorpay charge: ₹${razorpayChargeRupees}) → ${rzp.id}`);
+  logger.info(`Online Order ${order.orderNumber} created — total ₹${total} → ${rzp.id}`);
 
-  // Send WhatsApp awaiting-payment notification after 20 seconds delay ONLY if order is still unpaid
+  // Send WhatsApp delayed payment pending alert (after 20s)
   setTimeout(async () => {
     try {
       const latestOrder = await Order.findById(order._id);
       if (!latestOrder) return;
 
-      // If customer completed payment within 20 seconds, skip sending pending notification
       if (latestOrder.payment?.status === 'paid') {
         logger.info(`Skipping WA awaiting-payment for ${latestOrder.orderNumber}: Order is already PAID`);
         return;
@@ -333,13 +388,13 @@ exports.createOrder = asyncHandler(async (req, res) => {
   return created(res, {
     orderNumber: order.orderNumber,
     razorpayOrderId: rzp.id,
-    amount: rzp.amount,             // paise, for the Razorpay widget (6900 for COD, or total in paise for online)
+    amount: rzp.amount,             // paise, for the Razorpay widget
     currency: 'INR',
     keyId: razorpay.publicKey(),    // publishable id, safe in the browser
     subtotal,
     shippingCharge,
     total,
-    paymentMethod,
+    isCod: false,
     customer: { name, phone, email: order.customer.email },
   });
 });
