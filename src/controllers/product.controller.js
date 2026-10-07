@@ -76,7 +76,7 @@ function parseProductBody(body) {
   ['price', 'salePrice', 'discountPercent', 'stock', 'pages', 'weight', 'taxPercent', 'lowStockThreshold', 'order', 'publishYear']
     .forEach((k) => { if (out[k] !== undefined && out[k] !== '') out[k] = Number(out[k]); else if (out[k] === '') delete out[k]; });
 
-  if (out.stock !== undefined && out.stock < 3) out.stock = 3;
+  if (out.stock !== undefined && out.stock < 0) out.stock = 0;
 
   ['isFeatured', 'isTrending', 'isBestSeller', 'isLatest', 'isNewArrival', 'isActive', 'isHidden', 'allowBackorder']
     .forEach((k) => { if (out[k] !== undefined) out[k] = bool(out[k]); });

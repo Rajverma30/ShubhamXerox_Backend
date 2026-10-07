@@ -86,7 +86,7 @@ const productSchema = new mongoose.Schema(
     taxPercent: { type: Number, default: 0 },
 
     /* ── inventory ── */
-    stock: { type: Number, default: 10, min: 3 },
+    stock: { type: Number, default: 10, min: 0 },
     lowStockThreshold: { type: Number, default: 5 },
     allowBackorder: { type: Boolean, default: false },
 

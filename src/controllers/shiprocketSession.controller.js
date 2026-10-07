@@ -415,7 +415,7 @@ async function decrementStock(order) {
       continue;
     }
     const currentStock = Number(product.stock ?? 10);
-    const newStock = Math.max(3, currentStock - item.quantity);
+    const newStock = Math.max(0, currentStock - item.quantity);
     await Product.updateOne({ _id: item.product }, { stock: newStock, $inc: { soldCount: item.quantity } });
   }
 }
