@@ -199,6 +199,12 @@ exports.quote = asyncHandler(async (req, res) => {
     shipping = { charge: 69, courier: 'COD Express', etd: '3–5 days', serviceable: true, reason: 'cod-fixed' };
   } else if (/^\d{6}$/.test(pincode)) {
     shipping = await shippingFor({ pincode, weight, declaredValue: subtotal });
+  } else {
+    const settings = await Setting.getSingleton();
+    const flat = Number(settings.shippingFlat) || 0;
+    const freeAbove = Number(settings.freeShippingAbove) || 0;
+    const charge = (freeAbove && subtotal >= freeAbove) ? 0 : flat;
+    shipping = { charge, courier: null, etd: '3–5 days', serviceable: true, reason: 'default-fallback' };
   }
 
   const codCharges = isCod ? 49 : 0;
@@ -232,7 +238,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
 
   const a = req.body.address || {};
   const pincode = String(a.pincode || '').trim();
-  if (!/^\d{6}$/.test(pincode)) throw ApiError.badRequest('Enter a valid 6-digit PIN code');
+  if (pincode && !/^\d{6}$/.test(pincode)) throw ApiError.badRequest('Enter a valid 6-digit PIN code');
   if (!a.address || !a.city || !a.state) throw ApiError.badRequest('Please complete the delivery address');
 
   const name = String(req.body.customer?.name || '').trim();
@@ -249,9 +255,15 @@ exports.createOrder = asyncHandler(async (req, res) => {
     shippingCharge = 69;
     codCharges = 49;
     total = subtotal + shippingCharge + codCharges;
-  } else {
+  } else if (/^\d{6}$/.test(pincode)) {
     const shipping = await shippingFor({ pincode, weight, declaredValue: subtotal });
     shippingCharge = shipping.charge;
+    total = subtotal + shippingCharge;
+  } else {
+    const settings = await Setting.getSingleton();
+    const flat = Number(settings.shippingFlat) || 0;
+    const freeAbove = Number(settings.freeShippingAbove) || 0;
+    shippingCharge = (freeAbove && subtotal >= freeAbove) ? 0 : flat;
     total = subtotal + shippingCharge;
   }
 
@@ -264,7 +276,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
       city: a.city,
       district: a.district || '',
       state: a.state,
-      pincode,
+      pincode: pincode || '452001',
       country: 'India',
     },
     items: lines,
