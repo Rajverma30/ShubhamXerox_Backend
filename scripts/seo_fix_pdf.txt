@@ -1,0 +1,249 @@
+--- PAGE 1 ---
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+        Shubham Xerox – SEO & Website Optimization Work 
+Shubham Xerox — shubhamxerox.in 
+Prepared by: Vraizen Tech 
+September 2026 
+--- PAGE 2 ---
+Humne website ka complete SEO aur technical check kiya aur Google Search mein website ko better 
+perform karne ke liye multiple improvements kiye hain. 
+ 
+1. Google ko website samajhne layak banaya 
+Pehle kuch product pages Google ko properly nahi dikh rahe the. Google ko page ka actual product content milne ke bajay 
+website ka basic/blank structure mil raha tha. 
+Ab: Google ko product ka naam, price, description, author, publisher aur other important information properly milti hai. 
+Example: 
+Agar koi Google par search karta hai “MPPSC Mains Books”, toh Google website ke relevant pages ko properly read aur 
+understand kar sakta hai. 
+ 
+ 
+ 
+2. Purane product links ko sahi kiya 
+Website mein kuch products ke purane URLs change ho gaye the. Is wajah se purane links open karne par product nahi mil 
+raha tha. 
+Humne 338 old product URLs ko new URLs ke saath connect kiya. 
+Example: 
+Agar kisi ne purana product link save kiya hua hai: 
+old-product-link 
+Toh ab automatically: 
+Old Link → New Product Page 
+par chala jayega. 
+Isse customer bhi lost nahi hoga aur Google ko bhi samajh aayega ki product ka new address kya hai. 
+ 
+ 
+ 
+3. Broken pages ko properly handle kiya 
+Agar koi aisa product URL open karta hai jo website par exist hi nahi karta, toh pehle website kabhi-kabhi normal page ki 
+tarah response de rahi thi. 
+Ab: 
+Product exist karta hai → Product page open hoga 
+Product exist nahi karta → Proper 404 page 
+Isse Google ko website ke valid aur invalid pages ke beech clear information milti hai. 
+ 
+ 
+4. Product pages ka SEO improve kiya 
+Products ke pages ko Google ke liye better optimize kiya gaya. 
+Product pages mein ab properly: 
+ 
+Product title  
+ 
+Product description  
+ 
+Main heading  
+ 
+Price  
+ 
+Author  
+ 
+Publisher  
+ 
+ISBN, jahan available ho  
+ 
+Product details  
+ 
+Breadcrumbs  
+ 
+Google ke liye structured information  
+available hai. 
+Example: 
+Agar product hai “MPPSC Mains Book”, toh Google ko clearly pata chalega: 
+Ye ek book hai → iska naam kya hai → kis author ki hai → price kya hai → kis exam/category ke liye hai. 
+--- PAGE 3 ---
+ 
+5. Products ki SEO information improve ki 
+Bahut saare products mein proper short description aur SEO information missing thi. 
+Humne product catalog mein missing information ko improve kiya. 
+Isse har product ko Google mein alag aur relevant information ke saath understand karna easier hota hai. 
+ 
+ 
+ 
+ 
+6. Important categories ke liye new SEO pages banaye 
+Google par log alag-alag searches karte hain, jaise: 
+ 
+MPPSC Books  
+ 
+MPPSC Mains Books  
+ 
+MPESB Books  
+ 
+Current Affairs Books  
+ 
+Ghatna Chakra Books  
+In searches ko target karne ke liye dedicated pages create aur optimize kiye gaye. 
+Example: 
+Agar koi Google par search karta hai: 
+“MPPSC Mains Books” 
+toh ab website ke paas specifically us topic ke liye ek dedicated page hai: 
+/category/mppsc-mains-books 
+Isse Google ko relevant search ke liye relevant page identify karna easier hota hai. 
+ 
+ 
+ 
+ 
+ 
+ 
+7. Website ke pages ko aapas mein connect kiya 
+Website ke important pages ke beech internal links improve kiye gaye. 
+Example: 
+Homepage → MPPSC Books → MPPSC Mains → Individual Book 
+Isse customer ko bhi products find karna easy hota hai aur Google ko bhi website ke important pages discover karne mein 
+help milti hai. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+8. Sitemap update kiya 
+Sitemap basically Google ke liye website ka map hota hai. 
+Isme website ke important pages ki list hoti hai. 
+Humne sitemap update kiya aur new SEO/category pages bhi add kiye. 
+Currently sitemap mein approximately 628 important URLs hain. 
+Example: 
+Google ko sitemap se pata chalta hai: 
+“Shubham Xerox ki website par ye product pages aur ye category pages available hain, inhe crawl/check karo.” 
+Live testing mein 50 sample URLs check kiye gaye aur 50/50 properly open hue. 
+ 
+--- PAGE 4 ---
+ 
+ 
+9. Website ka Robots file update kiya 
+robots.txt ko simple language mein Google ke liye instructions file samajh sakte ho. 
+Humne ensure kiya ki Google: 
+✅ Products ko access kar sake 
+✅ Categories ko access kar sake 
+✅ Important public pages ko crawl kar sake 
+Aur private pages jaise: 
+❌ Cart 
+❌ Checkout 
+❌ Admin 
+❌ Order Success 
+ko unnecessarily crawl na kare. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+10. Website ke duplicate URLs ko control kiya 
+Kabhi ek hi page multiple URLs se open ho sakta hai. 
+Google ko confusion ho sakta hai ki: 
+“Inmein se original page kaunsa hai?” 
+Isliye important pages par preferred/original URL set kiya gaya. 
+Example: 
+Agar same product multiple URLs se access ho raha hai, toh Google ko clearly bataya jata hai: 
+“Ye iska main/original URL hai.” 
+Isse duplicate-page related problems reduce hoti hain. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+11. Google ko products ke baare mein extra information di 
+Website par structured data/schema add kiya gaya. 
+Iska simple meaning hai: 
+Website Google ko product ki information ek structured format mein bhi provide karti hai. 
+Example: 
+Google ko clearly information mil sakti hai: 
+Product: XYZ Book 
+Price: ₹299 
+Author: XYZ 
+--- PAGE 5 ---
+Category: MPPSC 
+ISBN: XXXXX 
+Isse Google ko product ko understand karne mein help milti hai. 
+ 
+12. Website ka technical testing kiya 
+Sirf changes karke chhod nahi diya gaya. 
+Live website par testing bhi ki gayi: 
+ 
+Normal website pages  
+ 
+Product pages  
+ 
+Old product URLs  
+ 
+Invalid URLs  
+ 
+SEO category pages  
+ 
+Sitemap  
+ 
+Robots file  
+ 
+Googlebot access  
+ 
+HTTPS/domain redirects  
+338/338 old product URL redirects successfully verify hue. 
+5/5 SEO category pages successfully verify hue. 
+50/50 sitemap URLs successfully tested hue. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Overall Result 
+Simple words mein: 
+Website ke andar jo major SEO aur Google crawling related problems thi, unko fix aur verify kiya gaya hai. 
+Ab website: 
+✅ Google ke liye properly readable hai 
+✅ Old product links properly new pages par jaate hain 
+✅ Invalid pages properly handle hote hain 
+✅ Product pages SEO optimized hain 
+✅ Important categories ke dedicated pages hain 
+✅ Sitemap updated hai 
+✅ Robots.txt optimized hai 
+✅ Internal linking improved hai 
+✅ Product structured data added hai 
+✅ HTTPS/domain structure properly configured hai 
+Important Note 
+Ye changes Google ranking ko instantly guarantee nahi karte. 
+Ab Google ko website ko dobara crawl aur index karna hoga. Uske baad gradually Google Search Console, rankings aur 
+organic traffic mein changes dekhne ko milenge. 
+Matlab technical foundation ab strong kar diya gaya hai; ab next step Google ka re-crawling/re-indexing aur ranking 
+movement monitor karna hai. 
+ 
+ 

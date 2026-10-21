@@ -1,0 +1,63 @@
+SEO ISSUES — OVERVIEW
+Shubham Xerox — shubhamxerox.in
+Prepared by: Vraizen Tech
+September 2026
+Technical SEO Issues
+1. Duplicate Canonical Tag (site-wide)
+Dikkat:
+Har page (home, products, ek-ek book ka page) pe Google ko same signal ja raha hai ki "ye sab ek hi page hai." Isliye Google aapke individual book pages ko alag se rank hi nahi kar pa raha — sirf homepage dikhta hai.
+2. Duplicate Title Tags & Meta Descriptions
+Dikkat:
+Har page ka Google search mein jo title-description dikhta hai wo sab same hai. Isse har page alag keyword pe rank nahi hota, aur log search mein click bhi kam karte hain kyunki sab kuch ek jaisa lagta hai.
+3. No XML Sitemap Found
+Dikkat:
+Sitemap na hone se Google ko naye pages dhundhne mein zyada time lagta hai — koi map hi nahi hai website ka.
+4. Robots.txt Not Confirmed
+Dikkat:
+Agar galti se koi important page block ho gaya robots.txt mein, to Google usko crawl hi nahi karega.
+5. UUID-based URLs (jaise /product/523dec61-...)
+Dikkat:
+URL mein book ka naam ya keyword nahi hai, sirf random code hai. Isse Google ko samajhna mushkil hota hai page kis baare mein hai, aur search result mein bhi URL ajeeb dikhta hai.
+6. Platform Limitation (Storefront Builder)
+Dikkat:
+Website jis platform pe bani hai, uspe shayad canonical, sitemap, URL jaisi cheezein khud se control nahi ho paatin — platform ki apni limit ho sakti hai.
+On-Page SEO Issues
+7. No Unique H1/Header Tags Confirmed
+Dikkat:
+Agar har page ka heading proper structured nahi hai, to Google ko page ka main topic samajhna mushkil hota hai.
+8. Weak Keyword Targeting
+Dikkat:
+Website generic words use kar rahi hai ("books," "stationery") jabki log specific search karte hain jaise "MPPSC books online Indore." Isse aap sahi audience tak nahi pahunch pa rahe.
+9. Image Alt Text / Optimization Not Confirmed
+Dikkat:
+Agar images ka alt text nahi hai ya images bhaari (heavy) hain, to site slow load hoti hai aur Google image search mein bhi nahi aata.
+10. No Schema Markup (Structured Data)
+Dikkat:
+Google ko product ki price, rating, address jaisi info directly samajh nahi aati, isliye search mein extra rich info (jaise star rating, price) nahi dikhta.
+11. Possible Keyword Cannibalization
+Dikkat:
+Agar products, all-products, category pages same type ke keyword target kar rahe hain, to wo ek-dusre se compete karke dono ko hi weak kar sakte hain.
+Off-Page SEO Issues
+12. Thin/No Backlink Profile
+Dikkat:
+Bade, trusted websites se aapki site ko link nahi mil rahe, jo Google ko batata hai ki aapki site trustworthy hai.
+13. Content Gap vs Competitor (B3 Books)
+Dikkat:
+Competitor ke paas blog articles hain jo unhe extra traffic dete hain, aapke paas wo nahi hai — isliye "kaunsi book lein" jaisi searches mein wo dikhte hain, aap nahi.
+Content Issues
+14. No Blog/Content Hub
+Dikkat:
+Jo log abhi decide kar rahe hain ki kaunsi book lein, wo aapki site tak nahi pahunchte kyunki koi guide/article content nahi hai.
+Local SEO Issues
+15. Brand Name Mismatch ("Subham" vs "Shubham")
+Dikkat:
+Website pe naam "Subham Xerox" (h missing) likha hai jabki har jagah (Google reviews, Instagram, Facebook, Justdial) "Shubham Xerox" hai. Isse Google confuse hota hai ki dono same business hain ya nahi.
+16. Inconsistent Address (NAP) Across Listings
+Dikkat:
+Address 4 alag tarike se likha hai (Bhawar Kuan, Bhanwarkua, Bhwarkua, Bhawarkua) — different jagah pe. Isse Google local search (jaise "near me") mein trust kam hota hai.
+17. Google Business Profile Status Unconfirmed
+Dikkat:
+Agar GBP properly claim/optimize nahi hai, to local search aur Maps mein aapki visibility kam rahegi — jabki aapke paas already achhe reviews hain jo use nahi ho rahe.
+18. No Dedicated Location Page on Website
+Dikkat:
+Website pe "Bhawarkua, Indore" jaisa koi proper page nahi hai jo location ko target kare — isse local relevance weak hai.

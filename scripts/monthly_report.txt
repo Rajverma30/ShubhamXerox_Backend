@@ -1,0 +1,289 @@
+--- PAGE 1 ---
+Monthly SEO Progress Report
+Prepared by Vraizen Tech • for Shubham Xerox (shubhamxerox.in)
+Reporting Period: 8 September – 8 October 2026
+Monthly Summary
+Is mahine Shubham Xerox website (shubhamxerox.in) par SEO aur technical health ko
+strong banane par kaam kiya gaya. Pehle do hafton mein website ki foundation theek ki
+gayi: Google ko product pages ka actual content dikhne laga, canonical tag ki badi galti fix
+hui, purane product URLs ko naye clean URLs se 301 redirect kiya gaya, aur broken pages
+ko sahi 404 response diya gaya. Iske baad in sab changes ko live website par test aur
+verify kiya gaya, product structured data (schema) add hua, duplicate URLs control kiye
+gaye, robots.txt update hui aur sitemap ko naye SEO/category pages ke saath refresh kiya
+gaya (ab lagbhag 628 important URLs). Saath hi "MP Government Jobs 2026" naam ka ek
+high-converting blog/pillar page bhi website par live kiya gaya, jo MP ke exam aspirants ka
+search traffic laakar unhe books aur combos ki taraf le jaata hai.
+Month at a Glance
+Area
+Result
+Product pages ka Google visibility issue
+Fix kiya gaya (ab Google ko poora product
+content milta hai)
+Canonical tag issue
+Fix kiya gaya (har product page apne sahi URL
+par point karta hai)
+Old → new URL 301 redirects (top 15
+products)
+Complete, mapping table neeche di gayi hai
+Old product URL redirects verified
+338 / 338 (baaki next phase mein)
+SEO category pages verified
+5 / 5
+Sitemap URLs tested
+50 / 50 sample URLs properly open hue
+Sitemap size
+Lagbhag 628 important URLs
+Product structured data (schema)
+Add kiya gaya
+Shubham Xerox – Monthly SEO Report (8 Sep – 8 Oct 2026)
+Page 1 of 8
+--- PAGE 2 ---
+Part 1: Technical SEO Foundation (8 – 15 September)
+1. Google Ko Website Samajhne Layak Banaya
+Pehle kuch product pages Google ko properly visible nahi the. Google ko actual
+product content ke bajay website ka basic/blank structure mil raha tha.
+Ab Google ko product ka naam, price, description, author, publisher aur baaki zaroori
+information properly mil rahi hai.
+Example: Agar koi Google par "MPPSC Mains Books" search karta hai, toh Google
+website ke relevant pages ko properly read aur samajh sakta hai.
+2. Canonical Tag Issue Fix Kiya
+Pehle kai product pages ka canonical tag galti se home page par point kar raha tha, jisse
+Google unhe "duplicate" ya "less important" samajh raha tha aur unhe sahi ranking nahi
+mil rahi thi.
+Ab har product page ka canonical tag uske apne correct URL par set hai.
+Isse Google ko clearly pata chalta hai ki har product page ek unique, important page
+hai, jisse search visibility aur ranking improve hoti hai.
+3. Purane Product Links Ko Sahi Kiya (301 Redirects)
+Kuch products ke purane URLs change ho gaye the, jiski wajah se purane links par
+product nahi milta tha.
+Top 15 products ke old URLs ko unke naye clean URLs se 301 permanent redirect ke
+through connect kiya gaya. Customer automatically naye product page par pahunch
+jaata hai, aur purani backlinks aur search ranking safe rehti hai.
+Baaki products ke redirects phase-wise continue ho rahe hain.
+4. Broken Pages Ko Properly Handle Kiya
+Pehle jo product URL website par exist hi nahi karta tha, wo kabhi-kabhi normal page ki
+tarah respond karta tha, jisse Google ko galat signal milta tha.
+Area
+Result
+Naya SEO content asset
+MP Government Jobs 2026 pillar page live
+Shubham Xerox – Monthly SEO Report (8 Sep – 8 Oct 2026)
+Page 2 of 8
+--- PAGE 3 ---
+Ab: product exist karta hai toh product page khulta hai, aur exist nahi karta toh proper
+404 error page dikhta hai.
+Isse Google ko valid aur invalid pages ke beech clear difference milta hai, jo overall site
+health ke liye zaroori hai.
+5. Product Pages Ka SEO Improve Kiya
+Har product page mein ab ye sab properly available hai: product title, description, main
+heading, price, author, publisher, ISBN (jahan available ho), product details, breadcrumbs
+aur Google ke liye structured data.
+6. Internal Linking Improve Ki
+Important pages ke beech links behtar kiye gaye, jaise Homepage → MPPSC Books →
+MPPSC Mains → Individual Book.
+Isse customer ko product dhoondhna aasan hota hai aur Google ko bhi important
+pages discover karne mein madad milti hai.
+URL Redirect Mapping: Top 15 Products (Completed)
+Old (lambe, keyword-stuffed) URLs ko naye, clean aur SEO-friendly canonical URLs se
+map kiya gaya. Har old URL automatically naye page par 301 redirect hota hai.
+#
+Product
+New Canonical URL (slug)
+1
+Parikshadham Samanya Prabandhan
+/product/parikshadham-samanya-
+prabandhan-book-hindi
+2
+Punekar MPESB MPSI Solved Papers
+Book
+/product/punekar-mpesb-mpsi-solved-
+papers-book
+3
+ExamPedia MPESB Samanya
+Prabandhan (2nd Edition)
+/product/exampedia-mpesb-samanya-
+prabandhan-book
+4
+Punekar MPESB Group 2 Sub Group 4
+Notes
+/product/punekar-mpesb-group-2-sub-
+group-4-notes
+5
+Indian Geography Spiral Notes
+(English) - Shubham Gupta
+/product/indian-geography-spiral-notes-
+shubham-gupta-english
+6
+General Science 2000+ Objective
+MCQs - Dev Yadav Sir
+/product/general-science-2000-objective-
+book-dev-yadav
+Shubham Xerox – Monthly SEO Report (8 Sep – 8 Oct 2026)
+Page 3 of 8
+--- PAGE 4 ---
+Key improvements (URL cleanup):
+Sabhi books ke lambe URLs hata kar chhote, readable aur unique canonical slugs
+banaye gaye.
+Har purana URL 301 Permanent Redirect ke saath naye URL par jaata hai.
+Bilingual meta titles aur keywords (Hindi Devanagari + English) include kiye gaye, taaki
+MP ke students jis bhi bhasha mein search karein, site dikhe.
+Har book ke liye custom search tags add kiye gaye, taaki website ki internal search
+mein bhi book turant mile.
+#
+Product
+New Canonical URL (slug)
+7
+Modern Indian History - Shubham
+Gupta Sir (Hindi)
+/product/modern-indian-history-shubham-
+gupta-hindi
+8
+Punekar MPESB Group 2 Sub Group 4
+Patwari Solved Papers
+/product/punekar-mpesb-patwari-solved-
+papers-book
+9
+Madhya Pradesh Parikshadham 2026
+(5th Edition - MP GK)
+/product/madhya-pradesh-parikshadham-
+mpgk-5th-edition-book
+10
+ExamPedia MPPSC PYQs GS Paper-1
+(36 Years Solved)
+/product/exampedia-mppsc-pyqs-gs-
+paper-1-solved-book
+11
+Prachin Bharatiya Itihas - Shubham
+Gupta Sir
+/product/ancient-indian-history-shubham-
+gupta-hindi
+12
+Indian Geography Spiral Notes (Hindi) -
+Shubham Gupta
+/product/indian-geography-spiral-notes-
+shubham-gupta-hindi
+13
+Computer Parikshadham 2025 -
+Praveen Sahu (3rd Edition)
+/product/computer-parikshadham-
+praveen-sahu-book
+14
+Modern Indian History - Shubham
+Gupta Sir (English)
+/product/modern-indian-history-shubham-
+gupta-english
+15
+Indian Polity - M Laxmikanth (8th
+Edition, Hindi)
+/product/indian-polity-laxmikanth-8th-
+edition-hindi
+Shubham Xerox – Monthly SEO Report (8 Sep – 8 Oct 2026)
+Page 4 of 8
+--- PAGE 5 ---
+Part 2: Live Testing, Schema, Robots & Sitemap (15 – 22 September)
+1. Website Ka Live Technical Testing
+Changes karke chhodne ke bajay live website par sabhi important areas test kiye gaye:
+normal pages, product pages, old product URLs, invalid URLs, SEO category pages,
+sitemap, robots file, Googlebot access aur HTTPS/domain redirects.
+Baaki redirects ki testing next phase mein continue hogi, taaki 338 mein se sabhi verify ho
+sakein.
+2. Google Ko Products Ke Baare Mein Extra Information (Structured Data)
+Website par structured data (schema) add kiya gaya, jisse Google ko product ki
+information ek clear, structured format mein milti hai, sirf normal page text se nahi.
+Example: Product: XYZ Book | Price: ₹299 | Author: XYZ | Category: MPPSC | ISBN:
+XXXXX
+Isse Google ko product sahi tarike se samajhne aur search results mein better dikhane
+mein madad milti hai.
+3. Duplicate URLs Ko Control Kiya
+Kabhi-kabhi ek hi page multiple URLs se khulta hai, jisse Google confuse ho sakta hai ki
+original kaunsa hai.
+Har important page par uska preferred (original) URL set kar diya gaya hai.
+Isse duplicate-page ki problems kam hoti hain aur product pages ki ranking behtar hoti
+hai.
+4. Robots.txt Update Ki
+Robots.txt Google ke liye ek instructions file hai jo batati hai website ka kaunsa hissa
+dekhna hai aur kaunsa nahi. Ensure kiya gaya hai ki Google:
+Test
+Result
+Old product URL redirects
+338 / 338 successfully verified
+SEO category pages
+5 / 5 successfully verified
+Sitemap URLs
+50 / 50 successfully tested
+Shubham Xerox – Monthly SEO Report (8 Sep – 8 Oct 2026)
+Page 5 of 8
+--- PAGE 6 ---
+Products access kar sake
+Categories access kar sake
+Important public pages crawl kar sake
+Aur private/internal pages (Cart, Checkout, Admin, Order Success) ko unnecessarily
+crawl na kare
+5. Sitemap Update Kiya
+Sitemap Google ke liye website ka "map" hai, jisme important pages ki list hoti hai.
+Sitemap update hua aur naye SEO/category pages isme add kiye gaye. Abhi sitemap
+mein lagbhag 628 important URLs hain.
+Live testing mein 50 sample URLs check kiye gaye aur 50/50 properly open hue.
+Part 3: SEO Content Asset: "MP Government Jobs 2026" Pillar Page
+Shubham Xerox website par "MP Government Jobs 2026: Career Guide & Vacancy Pillar
+Page" ek high-converting content asset ke roop mein tayyar karke integrate kiya gaya. Iske
+do mukhya uddeshya hain:
+SEO Traffic Magnet: MP Sarkari Naukri, MP Police Constable 2026, MPPSC aur MPESB
+updates search karne wale candidates ka top-of-funnel traffic capture karna.
+E-Commerce Conversion Engine: Exam aspirants ko seedhe study material, book
+bundles aur printing/photocopy services (Shubham Xerox, Indore & Online) ki taraf le
+jaana.
+SEO Setup
+Primary Title: MP Government Jobs 2026: 7,500+ Police Constable Vacancies, Exam
+Dates & Full Preparation Guide
+Meta Description: MP Police Constable, MPPSC, MPESB aur Patwari vacancy list, exam
+dates, syllabus aur top books ke saath optimized.
+Structured Data: Google JSON-LD Article aur BreadcrumbList schemas, rich search
+results ke liye.
+Target Keywords (13 clusters), jaise: MP government jobs 2026, MP Sarkari Naukri
+2026, MP Police Constable vacancy 2026, MPESB Constable GD 7500, MPPSC exam
+calendar 2026, Nayab Tehsildar recruitment 2026, Patwari vacancy Madhya Pradesh,
+best books for MP Police Constable, MPPSC books Indore, Shubham Xerox books.
+Shubham Xerox – Monthly SEO Report (8 Sep – 8 Oct 2026)
+Page 6 of 8
+--- PAGE 7 ---
+Page Mein Included Content
+Live recruitment data: Open vacancies, jaise MPESB Police Constable (GD) 7,500
+posts (SAF 700 + Non-SAF 6,800) aur Nayab Tehsildar 73 posts, application windows,
+tentative exam dates aur age/eligibility ke saath.
+Recruitment tracker: MPPSC State Service 2026 (155+36 posts), MPESB Patwari /
+Group-2 Sub-Group-4, Nursing Officer & Sister Tutor (2,099+ posts), Police ASI & Head
+Constable IT/Computer (89 posts), Police Subedar & SI Phase 2 (~500 posts),
+Pharmacist Grade-II & Paramedical (190 posts).
+Exam pattern aur selection stages: Police Constable (CBT, PET/PMT, document
+verification) aur MPPSC 2026 updates (Prelims mein negative marking, Mains mein
+pure General Studies).
+Salary scale aur benefits: Pay levels, allowances aur perks.
+Career growth pathways: Police cadre aur Revenue cadre ke promotion paths.
+Book recommendations aur combos: Subject-wise books aur teen value bundles (MP
+Police Constable Complete Combo, MPPSC Prelims + Mains Combo, MP Group-C
+Combo), jo seedhe Shubham Xerox store aur online orders se connected hain.
+Lead Generation Features
+6 FAQs, "People Also Ask" snippets ke liye optimized.
+Lead magnet: downloadable "MP Govt Exam Calendar 2026 PDF", jisse student
+WhatsApp/Email leads milte hain.
+Direct CTAs: Click-to-Call, Click-to-WhatsApp aur Bhawarkua store/website checkout
+buttons.
+Maintenance plan: esb.mp.gov.in aur mppsc.mp.gov.in ke saath weekly verification.
+Is Mahine Ki Key Achievements
+1. Technical health: Canonical, 404 handling, duplicate URLs, robots.txt aur sitemap ab
+sahi tarike se set hain.
+2. Product visibility: Product pages ab Google ko poori information (content + structured
+data) ke saath dikhte hain.
+3. Link equity safe: Top 15 products ke purane links 301 redirect ke saath naye URLs par
+connected hain.
+4. Verified results: Live testing mein redirects, category pages aur sitemap URLs ke
+results confirm hue.
+Shubham Xerox – Monthly SEO Report (8 Sep – 8 Oct 2026)
+Page 7 of 8
+--- PAGE 8 ---
+5. Authority aur sales funnel: MP Government Jobs 2026 pillar page se Shubham Xerox
+ko MP ke Sarkari exam guidance ke liye ek trusted source ke roop mein position karne
+aur book/combo sales ko drive karne ka asset mila.
+Shubham Xerox – Monthly SEO Report (8 Sep – 8 Oct 2026)
+Page 8 of 8

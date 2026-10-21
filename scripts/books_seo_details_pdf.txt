@@ -1,0 +1,80 @@
+--- PAGE 1 ---
+ #
+ Book
+ Category
+ Publisher / Brand
+ Language
+ Key Details
+ URL Slug
+ Image Alt Tag
+ 1
+ CTET Paper 2 Social Science (Updated)
+ Teaching Exams > CTET Paper 2
+ Sachin Choudhary (author)
+ [Confirm]
+ History, Geography, Civics, Pedagogy
+ /ctet-paper-2-social-science-sachin-choudhary
+ CTET Paper 2 Social Science Book by Sachin Choudhary
+ 2
+ Drishti IAS MPPSC Prelims: Science & Tech,
+Environment & Health
+ MPPSC > Prelims Books
+ Drishti IAS
+ Hindi
+ 3rd Edition, 1450+ MCQs, 2020-2025 PYQs
+ /drishti-ias-mppsc-prelims-science-technology-environment-health-hindi
+ Drishti IAS MPPSC Prelims Practice Series Science Technology Environment Health
+Hindi
+ 3
+ Drishti IAS MPPSC Prelims: Geography of India & MP
+ MPPSC > Prelims Books
+ Drishti IAS
+ Hindi
+ 1300+ MCQs with explanations
+ /drishti-ias-mppsc-prelims-geography-india-madhya-pradesh-hindi
+ Drishti IAS MPPSC Prelims Practice Series Geography of India and Madhya Pradesh
+Hindi
+ 4
+ Drishti IAS MPPSC Prelims: Itihas, Sanskriti evam
+Sahitya
+ MPPSC > Prelims Books
+ Drishti Publications
+ Hindi
+ 3rd Edition (10 Feb 2026), 3300+ MCQs, ISBN-13:
+978-9360826420
+ /drishti-ias-mppsc-prelims-itihas-sanskriti-sahitya-hindi
+ Drishti IAS MPPSC Prelims Practice Series Bharat evam Madhya Pradesh ka Itihas
+Sanskriti evam Sahitya
+ 5
+ Edu Teria Current Affairs MCQs Power Book
+ Current Affairs > MCQs
+ Edu Teria
+ Hindi
+ June 2025 to October 2026
+ /edu-teria-current-affairs-mcqs-power-book-june-2025-october-2026-hindi
+ Edu Teria Current Affairs MCQs Power Book June 2025 to October 2026 Hindi Medium
+ 6
+ PW NEET PYQ 39 Years Physics for 2027
+ Medical Exams > NEET Physics PYQ
+ Physics Wallah Limited
+ English
+ 312 pages, 4 May 2026, ISBN-13: 978-9378186240, PYQs
+2026-1988
+ /pw-neet-pyq-39-years-physics-2027-english
+ PW NEET PYQ 39 Years Physics Book for NEET 2027 English
+ 7
+ Exampedia MP Current Affairs Yearly Book 2026
+ MPPSC > Current Affairs
+ Exampedia
+ [Hindi/English, confirm]
+ Prelims & Mains, for MPPSC, ADPO, MPESB Asst.
+Professor, MPSI
+ /exampedia-mp-current-affairs-yearly-book-2026
+ Exampedia MP Current Affairs Yearly Book 2026 for MPPSC, ADPO, MPSI and
+MPESB
+ Note: Yellow cells need confirmation from the book. Books 5, 6 and 7 do not belong in Teaching Exams; keep them in their own categories.
+--- PAGE 2 ---
+ Category
+ URL Slug
+ Teaching Exams
+ /teaching-exams
